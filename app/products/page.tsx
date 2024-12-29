@@ -26,8 +26,7 @@ export default async function Page() {
   const products: Product[] = await getProducts(); 
 
   return (
-    <section className='pt-20'>
-      <h1 className="text-2xl font-bold lg:text-center">Produk Kami</h1>
+    <section className='pt-16'>
       <FilterComponent products={products} />
 
     </section>

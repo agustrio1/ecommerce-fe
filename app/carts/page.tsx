@@ -5,13 +5,10 @@ import { Button } from "@/components/ui/button";
 import { formatRupiah } from "@/utils/currency";
 import { Trash2, Plus, Minus, Loader2, ShoppingCart } from "lucide-react";
 import Image from "next/image";
-import { useToast } from "@/hooks/use-toast";
-import { useCart } from "@/hooks/useCart"; // Import the custom hook
-
+import { useCart } from "@/hooks/useCart"; 
 export default function CartPage() {
   const { cartItems, loading, error, handleUpdateQuantity, handleDeleteItem } =
     useCart();
-  const { toast } = useToast();
 
   if (loading) {
     return (
@@ -69,7 +66,7 @@ export default function CartPage() {
                       item.product?.images?.length &&
                       item.product.images.length > 0
                         ? item.product.images[0]?.image
-                        : "/placeholder-image.jpg"
+                        : "/placeholder-card.jpg"
                     }
                     alt={item.product?.name || "Product image"}
                     fill

@@ -8,20 +8,14 @@ import {
 } from "@/types/category.type";
 import { getToken } from "@/utils/token";
 
-/*************  ✨ Codeium Command ⭐  *************/
-/**
- * Make a fetch request to the given URL with the given options, but first
- * attempt to get a token from local storage and add it to the Authorization
- * header if it exists.
- * @param {string} url The URL to request
- * @param {any} options The options to pass to fetch
- * @return {Promise<Response>} The response from the fetch request
- */
-/******  af87288a-9322-447b-9a1e-61464332f1bd  *******/
 const fetchWithAuth = async (url: string, options: any) => {
   const token = await getToken();
   if (token) {
     options.headers.Authorization = `Bearer ${token}`;
+    // Don't include Content-Type for FormData
+    if (options.body instanceof FormData) {
+      delete options.headers["Content-Type"];
+    }
   }
   return fetch(url, options);
 };
@@ -36,9 +30,10 @@ export async function GET(request: NextRequest) {
     });
 
     if (!res.ok) {
+      const errorData = await res.json();
       return NextResponse.json(
-        { error: "Failed to fetch categories" },
-        { status: 500 }
+        { error: errorData.error || "Gagal mengambil kategori" },
+        { status: res.status }
       );
     }
 
@@ -46,20 +41,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
-      { error: "An error occurred while fetching categories" },
+      { error: "Terjadi kesalahan saat mengambil kategori" },
       { status: 500 }
     );
   }
 }
 
 export async function GET_BY_ID(request: NextRequest) {
-  // Mengambil ID dari URL params
   const { pathname } = request.nextUrl;
-  const id = pathname.split("/").pop(); // Mengambil bagian terakhir dari URL sebagai ID
+  const id = pathname.split("/").pop();
 
   if (!id) {
     return NextResponse.json(
-      { error: "Category ID is required" },
+      { error: "ID kategori diperlukan" },
       { status: 400 }
     );
   }
@@ -76,30 +70,30 @@ export async function GET_BY_ID(request: NextRequest) {
     );
 
     if (!res.ok) {
-      const errorData = await res.json(); // Ambil pesan kesalahan dari respon
+      const errorData = await res.json();
       return NextResponse.json(
-        { error: errorData.message || "Failed to fetch category" },
+        { error: errorData.error || "Kategori tidak ditemukan" },
         { status: res.status }
       );
     }
 
     const data = await res.json();
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("GET_BY_ID Error:", error);
     return NextResponse.json(
-      { error: "An error occurred while fetching the category" },
+      { error: "Terjadi kesalahan saat mengambil kategori" },
       { status: 500 }
     );
   }
 }
 
-export async function GET_BY_SLUG(request: any) {
-  const { searchParams } = request;
+export async function GET_BY_SLUG(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
   const slug = searchParams.get("slug");
+
   if (!slug) {
     return NextResponse.json(
-      { error: "Category slug is required" },
+      { error: "Slug kategori diperlukan" },
       { status: 400 }
     );
   }
@@ -116,9 +110,10 @@ export async function GET_BY_SLUG(request: any) {
     );
 
     if (!res.ok) {
+      const errorData = await res.json();
       return NextResponse.json(
-        { error: "Failed to fetch category" },
-        { status: 500 }
+        { error: errorData.error || "Kategori tidak ditemukan" },
+        { status: res.status }
       );
     }
 
@@ -126,7 +121,7 @@ export async function GET_BY_SLUG(request: any) {
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
-      { error: "An error occurred while fetching the category" },
+      { error: "Terjadi kesalahan saat mengambil kategori" },
       { status: 500 }
     );
   }
@@ -134,23 +129,22 @@ export async function GET_BY_SLUG(request: any) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name } = (await request.json()) as CreateCategory;
-
+    const formData = await request.formData();
+    
     const res = await fetchWithAuth(
       `${process.env.NEXT_PUBLIC_API_URL}/categories`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name }),
+        headers: {},
+        body: formData,
       }
     );
 
     if (!res.ok) {
+      const errorData = await res.json();
       return NextResponse.json(
-        { error: "Failed to create category" },
-        { status: 500 }
+        { error: errorData.error || "Gagal membuat kategori" },
+        { status: res.status }
       );
     }
 
@@ -158,7 +152,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     return NextResponse.json(
-      { error: "An error occurred while creating the category" },
+      { error: "Terjadi kesalahan saat membuat kategori" },
       { status: 500 }
     );
   }
@@ -166,12 +160,12 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { id, name } = (await request.json()) as UpdateCategory;
+    const formData = await request.formData();
+    const id = formData.get("id");
 
-    // Validate the input
-    if (!id || !name) {
+    if (!id) {
       return NextResponse.json(
-        { error: "Category ID and name are required" },
+        { error: "ID kategori diperlukan" },
         { status: 400 }
       );
     }
@@ -180,27 +174,24 @@ export async function PUT(request: NextRequest) {
       `${process.env.NEXT_PUBLIC_API_URL}/categories/${id}`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name }),
+        headers: {},
+        body: formData,
       }
     );
 
     if (!res.ok) {
       const errorData = await res.json();
       return NextResponse.json(
-        { error: errorData.message || "Failed to update category" },
+        { error: errorData.error || "Gagal memperbarui kategori" },
         { status: res.status }
       );
     }
 
     const data = await res.json();
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("PUT Error:", error);
     return NextResponse.json(
-      { error: "An error occurred while updating the category" },
+      { error: "Terjadi kesalahan saat memperbarui kategori" },
       { status: 500 }
     );
   }
@@ -208,12 +199,11 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { id } = (await request.json()) as GetCategory;
+    const { id } = await request.json() as GetCategory;
 
-    // Validate the input
     if (!id) {
       return NextResponse.json(
-        { error: "Category ID is required" },
+        { error: "ID kategori diperlukan" },
         { status: 400 }
       );
     }
@@ -231,19 +221,18 @@ export async function DELETE(request: NextRequest) {
     if (!res.ok) {
       const errorData = await res.json();
       return NextResponse.json(
-        { error: errorData.message || "Failed to delete category" },
+        { error: errorData.error || "Gagal menghapus kategori" },
         { status: res.status }
       );
     }
 
     return NextResponse.json(
-      { message: "Category deleted successfully" },
+      { message: "Kategori berhasil dihapus" },
       { status: 200 }
     );
   } catch (error) {
-    console.error("DELETE Error:", error);
     return NextResponse.json(
-      { error: "An error occurred while deleting the category" },
+      { error: "Terjadi kesalahan saat menghapus kategori" },
       { status: 500 }
     );
   }

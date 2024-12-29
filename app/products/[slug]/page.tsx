@@ -68,7 +68,7 @@ export default async function ProductDetailPage({
           )}
         </div>
 
-        <div className="flex flex-col gap-4 justify-between">
+        <div className="flex flex-col gap-4 justify-between mb-4">
           <ProductDescription description={product.description} />
           <div className="flex flex-col items-start mt-4">
             <p className="text-xl font-bold text-gray-900">

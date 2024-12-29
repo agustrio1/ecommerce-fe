@@ -7,10 +7,12 @@ export interface GetCategory {
 export interface CreateCategory {
   slug: string;
   name: string;
+  image?: string;
 }
 
 export interface UpdateCategory {
   id: string;
   slug: string;
   name: string;
+  image?:string;
 }

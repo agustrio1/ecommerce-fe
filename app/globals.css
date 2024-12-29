@@ -77,3 +77,18 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.relative .absolute {
+  animation: pop-in 0.3s ease-out;
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
