@@ -1,15 +1,5 @@
 import * as React from "react";
-import {
-  ShoppingBag,
-  Heart,
-  Bell,
-  ChevronDown,
-  Search,
-  Home,
-  User,
-  X,
-  Loader2,
-} from "lucide-react";
+import { ShoppingBag, Heart, Bell, ChevronDown, Search, Home, User, X, Loader2, Menu } from 'lucide-react';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { parseJwt } from "@/utils/parseJwt";
@@ -89,6 +79,7 @@ const Navbar = () => {
       setIsLoading(false);
     }
   };
+
   React.useEffect(() => {
     if (!searchTerm.trim()) {
       setResults([]);
@@ -111,10 +102,9 @@ const Navbar = () => {
     const res = fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/products/${searchTerm}`
     );
-    setShowMobileSearch(false); 
+    setShowMobileSearch(false);
   };
 
-  // Handle click outside search
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -131,7 +121,7 @@ const Navbar = () => {
     };
   }, [showMobileSearch]);
 
-  const getSliderPosition = (tab : any) => {
+  const getSliderPosition = (tab: string) => {
     switch (tab) {
       case 'home': return 'translate-x-0';
       case 'search': return 'translate-x-full';
@@ -144,66 +134,57 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Desktop Navigation - Fixed at top */}
-      <nav className="fixed top-0 left-0 right-0 bg-white shadow z-50 hidden md:block">
-        <div className="container mx-auto max-w-[1300px] px-4">
+      {/* Desktop Navigation */}
+      <nav className="fixed top-0 left-0 right-0 bg-white shadow-md z-50 hidden md:block">
+        <div className="container mx-auto max-w-7xl px-4">
           <div className="flex items-center justify-between h-16">
             <Link
               href="/"
-              className="text-2xl font-bold lg:ml-8"
+              className="text-2xl font-bold text-primary transition-colors duration-200 hover:text-primary/80"
               aria-label="Home">
               BrandLogo
             </Link>
-            <form
-              onSubmit={handleSearch}
-              className="flex items-center flex-col mt-4 relative">
-              <div className="flex items-center mb-4 w-full">
+            <div className="flex-1 max-w-xl mx-8">
+              <form onSubmit={handleSearch} className="relative">
                 <Input
                   type="text"
                   placeholder="Cari produk..."
                   value={searchTerm}
                   onChange={handleInputChange}
-                  className="w-64"
+                  className="w-full pr-10 pl-10 py-2 border-none bg-gray-100 focus:ring-2 focus:ring-primary/50 rounded-full"
                 />
-                <Button type="submit" className="ml-2">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Button type="submit" size="sm" variant="ghost" className="absolute right-1 top-1/2 transform -translate-y-1/2">
                   Cari
                 </Button>
-              </div>
-
+              </form>
+              {/* Search Results */}
               {isLoading ? (
-                <div className="flex justify-center items-center mt-8">
-                  <Loader2 className="animate-spin text-gray-600" />
+                <div className="absolute top-full left-0 right-0 bg-white shadow-lg rounded-md p-4 mt-2">
+                  <Loader2 className="animate-spin mx-auto text-primary" />
                 </div>
-              ) : results.length === 0 && searchTerm.trim() ? (
-                <p className="text-center my-4 mt-8">Tidak ada produk yang cocok.</p>
-              ) : (
-                <ul className="absolute top-full left-0 w-full mt-2 bg-white shadow-lg rounded-md max-h-60 overflow-y-auto z-10">
+              ) : results.length > 0 && (
+                <ul className="absolute top-full left-0 right-0 bg-white shadow-lg rounded-md max-h-96 overflow-y-auto z-10 mt-2">
                   {results.map((product) => (
-                    <li
-                      key={product.id}
-                      className="flex items-center space-x-4 p-2 border-b">
-                        <Link href={`/products/${product.slug}`} className="block p-2">
-                      <img
-                        src={
-                          product.images.length > 0
-                            ? product.images[0].image
-                            : ""
-                        }
-                        alt={product.name}
-                        className="w-16 h-16 object-cover"
-                      />
-                      <div className="flex flex-col">
-                        <h3 className="font-semibold">{product.name}</h3>
-                        <p className="text-gray-600">
-                          {formatRupiah(product.price)}
-                        </p>
-                      </div>
+                    <li key={product.id} className="border-b last:border-b-0">
+                      <Link href={`/products/${product.slug}`} className="flex items-center space-x-4 p-4 hover:bg-gray-50 transition duration-150">
+                        <img
+                          src={product.images[0]?.image || "/placeholder.png"}
+                          alt={product.name}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                        <div>
+                          <h3 className="font-semibold text-sm">{product.name}</h3>
+                          <p className="text-primary font-medium">
+                            {formatRupiah(product.price)}
+                          </p>
+                        </div>
                       </Link>
                     </li>
                   ))}
                 </ul>
               )}
-            </form>
+            </div>
             <div className="flex items-center space-x-6">
               <NavMenu
                 categories={categories}
@@ -213,53 +194,34 @@ const Navbar = () => {
                 onLinkClick={handleLinkClick}
               />
               <div className="flex items-center space-x-4">
-                <Link href="/wishlists" aria-label="Wishlist">
-                  <Heart className="w-6 h-6" />
-                </Link>
-                <Link href="/carts" aria-label="Shopping Cart">
-                  <ShoppingBag className="w-6 h-6" />
-                </Link>
-                <Link href="/notifications" aria-label="Notifikasi">
-                  <Bell className="w-6 h-6" />
-                </Link>
+                <IconLink href="/wishlists" icon={Heart} label="Wishlist" />
+                <IconLink href="/carts" icon={ShoppingBag} label="Shopping Cart" />
+                <IconLink href="/notifications" icon={Bell} label="Notifications" />
               </div>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Header - Simplified */}
-      <div className="fixed top-0 left-0 right-0 bg-white shadow z-50 md:hidden">
+      {/* Mobile Header */}
+      <div className="fixed top-0 left-0 right-0 bg-white shadow-md z-50 md:hidden">
         <div className="flex items-center justify-between p-4">
           <button
             onClick={toggleMenu}
-            className="flex items-center"
+            className="text-gray-600 hover:text-primary transition-colors"
             aria-label="Toggle Menu">
-            <div className="space-y-1.5">
-              <span
-                className={`block w-6 h-0.5 bg-gray-950 transition-transform duration-300 ${
-                  isMenuOpen ? "rotate-45 translate-y-2" : ""
-                }`}></span>
-              <span
-                className={`block w-6 h-0.5 bg-gray-950 transition-opacity duration-300 ${
-                  isMenuOpen ? "opacity-0" : "opacity-100"
-                }`}></span>
-              <span
-                className={`block w-6 h-0.5 bg-gray-950 transition-transform duration-300 ${
-                  isMenuOpen ? "-rotate-45 -translate-y-2" : ""
-                }`}></span>
-            </div>
+            <Menu className="w-6 h-6" />
           </button>
-          <Link href="/" className="text-xl font-bold" aria-label="Home">
+          <Link href="/" className="text-xl font-bold text-primary" aria-label="Home">
             BrandLogo
           </Link>
-          <Link href="/carts" aria-label="Shopping Cart">
+          <Link href="/carts" className="text-gray-600 hover:text-primary transition-colors" aria-label="Shopping Cart">
             <ShoppingBag className="w-6 h-6" />
           </Link>
         </div>
       </div>
 
-      {/* Mobile Floating Search */}
+      {/* Mobile Search */}
       {showMobileSearch && (
         <div className="fixed inset-x-0 top-16 z-50 p-4 bg-white shadow-lg md:hidden mobile-search-container">
           <form onSubmit={(e) => e.preventDefault()} className="relative">
@@ -268,39 +230,38 @@ const Navbar = () => {
               placeholder="Cari produk..."
               value={searchTerm}
               onChange={handleInputChange}
-              className="w-full pr-10"
+              className="w-full pr-10 pl-10 py-2 border-none bg-gray-100 focus:ring-2 focus:ring-primary/50 rounded-full"
               autoFocus
             />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <button
               type="button"
               onClick={() => setShowMobileSearch(false)}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               aria-label="Close Search">
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5" />
             </button>
           </form>
           {isLoading ? (
-            <p className="text-center animate-spin my-4 ">Loading...</p>
+            <div className="flex justify-center items-center my-4">
+              <Loader2 className="animate-spin text-primary" />
+            </div>
           ) : results.length === 0 && searchTerm.trim() ? (
-            <p className="text-center">Tidak ada produk yang cocok.</p>
+            <p className="text-center text-gray-500 my-4">Tidak ada produk yang cocok.</p>
           ) : (
-            <ul>
+            <ul className="mt-4">
               {results.map((product) => (
-                <li key={product.id}>
-                  <Link href={`/products/${product.slug}`} className="block p-2">
-                  <div className="flex items-center space-x-2">
+                <li key={product.id} className="border-b last:border-b-0">
+                  <Link href={`/products/${product.slug}`} className="flex items-center space-x-4 p-4">
                     <img
-                      src={
-                        product.images.length > 0 ? product.images[0].image : ""
-                      }
+                      src={product.images[0]?.image || "/placeholder-card.svg"}
                       alt={product.name}
-                      className="w-16 h-16 object-cover"
+                      className="w-16 h-16 object-cover rounded"
                     />
-                    <div className="flex flex-col">
-                      <h3>{product.name}</h3>
-                      <p>{formatRupiah(product.price)}</p>
+                    <div>
+                      <h3 className="font-semibold">{product.name}</h3>
+                      <p className="text-primary">{formatRupiah(product.price)}</p>
                     </div>
-                  </div>
                   </Link>
                 </li>
               ))}
@@ -311,25 +272,34 @@ const Navbar = () => {
 
       {/* Mobile Slide Menu */}
       <div
-        className={`fixed inset-0 z-50 bg-gray-100 text-black transition-transform transform ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } duration-300 md:hidden`}
-        style={{ width: "75%" }}>
-        <div className="flex flex-col p-4 space-y-2">
-          <NavMenu
-            categories={categories}
-            isLoggedIn={isLoggedIn}
-            role={role}
-            onLogout={handleLogout}
-            onLinkClick={handleLinkClick}
-            mobile
-          />
+        } transition-transform duration-300 ease-in-out md:hidden`}>
+        <div className="flex flex-col h-full">
+          <div className="p-4 border-b flex justify-between items-center">
+            <Link href="/" className="text-xl font-bold text-primary" aria-label="Home">
+              BrandLogo
+            </Link>
+            <button onClick={toggleMenu} className="text-gray-600 hover:text-primary transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <NavMenu
+              categories={categories}
+              isLoggedIn={isLoggedIn}
+              role={role}
+              onLogout={handleLogout}
+              onLinkClick={handleLinkClick}
+              mobile
+            />
+          </div>
         </div>
       </div>
 
       {isMenuOpen && (
         <div
-          className="fixed inset-0 bg-black opacity-50 z-40 md:hidden cursor-pointer"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden transition-opacity duration-300 ease-in-out"
           onClick={toggleMenu}
           aria-label="Close Menu"
         />
@@ -337,80 +307,55 @@ const Navbar = () => {
 
       {/* Mobile Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t md:hidden z-50">
-      <div className="grid grid-cols-5 gap-1 relative p-1">
-        <div 
-          className={`absolute top-1 bottom-1 w-1/5 bg-blue-100/80 backdrop-blur-sm 
-          rounded-2xl shadow-sm transform transition-transform duration-500 ease-out
-          ${getSliderPosition(activeTab)}`}
-        />
-        <Link 
-          href="/"
-          onClick={() => setActiveTab('home')}
-          className={`group flex flex-col items-center py-2 relative z-10 
-          transition-all duration-300 rounded-2xl
-          ${activeTab === 'home' ? 'text-blue-600 scale-105' : 'text-gray-600'}
-          hover:text-blue-500`}
-        >
-          <Home className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
-          <span className="text-xs mt-1 transition-all duration-300 group-hover:font-medium">Beranda</span>
-        </Link>
-
-        <button
-          onClick={() => {
-            setActiveTab('search');
-            setShowMobileSearch(true);
-          }}
-          className={`group flex flex-col items-center py-2 relative z-10 
-          transition-all duration-300 rounded-2xl
-          ${activeTab === 'search' ? 'text-gray-600 scale-105' : 'text-gray-600'}
-          hover:text-blue-500`}
-        >
-          <Search className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
-          <span className="text-xs mt-1 transition-all duration-300 group-hover:font-medium">Cari</span>
-        </button>
-
-        <Link
-          href="/wishlists"
-          onClick={() => setActiveTab('wishlist')}
-          className={`group flex flex-col items-center py-2 relative z-10 
-          transition-all duration-300 rounded-2xl
-          ${activeTab === 'wishlist' ? 'text-blue-600 scale-105' : 'text-gray-600'}
-          hover:text-blue-500`}
-        >
-          <Heart className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
-          <span className="text-xs mt-1 transition-all duration-300 group-hover:font-medium">Wishlist</span>
-        </Link>
-
-        <Link
-          href="/notifications"
-          onClick={() => setActiveTab('notifications')}
-          className={`group flex flex-col items-center py-2 relative z-10 
-          transition-all duration-300 rounded-2xl
-          ${activeTab === 'notifications' ? 'text-blue-600 scale-105' : 'text-gray-600'}
-          hover:text-blue-500`}
-        >
-          <Bell className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
-          <span className="text-xs mt-1 transition-all duration-300 group-hover:font-medium">Notifikasi</span>
-        </Link>
-
-        <Link
-          href={isLoggedIn ? (role === "ADMIN" ? "/dashboard" : "/user") : "/login"}
-          onClick={() => setActiveTab('profile')}
-          className={`group flex flex-col items-center py-2 relative z-10 
-          transition-all duration-300 rounded-2xl
-          ${activeTab === 'profile' ? 'text-blue-600 scale-105' : 'text-gray-600'}
-          hover:text-blue-500`}
-        >
-          <User className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
-          <span className="text-xs mt-1 transition-all duration-300 group-hover:font-medium">Profil</span>
-        </Link>
+        <div className="grid grid-cols-5 gap-1 relative p-1">
+          <div 
+            className={`absolute top-1 bottom-1 w-1/5 bg-primary/10 backdrop-blur-sm 
+            rounded-2xl shadow-sm transform transition-all duration-500 ease-out
+            ${getSliderPosition(activeTab)}`}
+          />
+          <BottomNavItem
+            href="/"
+            icon={Home}
+            label="Beranda"
+            isActive={activeTab === 'home'}
+            onClick={() => setActiveTab('home')}
+          />
+          <BottomNavItem
+            icon={Search}
+            label="Cari"
+            isActive={activeTab === 'search'}
+            onClick={() => {
+              setActiveTab('search');
+              setShowMobileSearch(true);
+            }}
+          />
+          <BottomNavItem
+            href="/wishlists"
+            icon={Heart}
+            label="Wishlist"
+            isActive={activeTab === 'wishlist'}
+            onClick={() => setActiveTab('wishlist')}
+          />
+          <BottomNavItem
+            href="/notifications"
+            icon={Bell}
+            label="Notifikasi"
+            isActive={activeTab === 'notifications'}
+            onClick={() => setActiveTab('notifications')}
+          />
+          <BottomNavItem
+            href={isLoggedIn ? (role === "ADMIN" ? "/dashboard" : "/user") : "/login"}
+            icon={User}
+            label="Profil"
+            isActive={activeTab === 'profile'}
+            onClick={() => setActiveTab('profile')}
+          />
+        </div>
       </div>
-    </div>
     </>
   );
 };
 
-// NavMenu component with removed search and dashboard/user links for mobile
 const NavMenu = ({
   categories,
   isLoggedIn,
@@ -444,25 +389,26 @@ const NavMenu = ({
   }, [isCategoryOpen]);
 
   return (
-    <>
+    <div className={`${mobile ? 'space-y-4 p-4' : 'flex items-center space-x-4'}`}>
       <div className="relative category-menu">
         <button
           onClick={toggleCategoryMenu}
-          className="flex items-center mt-2 text-lg"
+          className="flex items-center text-gray-700 hover:text-primary transition-colors"
           aria-label="Categories">
           Kategori <ChevronDown className="ml-1" />
         </button>
         {isCategoryOpen && (
-          <div
-            className="absolute z-10 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4 lg:w-96"
-            onMouseLeave={() => setIsCategoryOpen(false)}>
-            <ul className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2">
+          <div className="absolute z-10 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-64">
+            <ul className="space-y-2">
               {categories.map((category: any) => (
                 <li key={category.id}>
                   <Link
                     href={`/categories/${category.slug as string}`}
-                    className="block px-4 py-2 text-lg font-medium hover:bg-gray-100 rounded transition duration-150"
-                    aria-label="Categories">
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded transition duration-150"
+                    onClick={() => {
+                      onLinkClick(`/categories/${category.slug}`);
+                      setIsCategoryOpen(false);
+                    }}>
                     {category.name as string}
                   </Link>
                 </li>
@@ -475,11 +421,13 @@ const NavMenu = ({
         href="/products"
         onClick={() => onLinkClick("/products")}
         label="Produk"
+        mobile={mobile}
       />
       <NavLink
         href="/about"
         onClick={() => onLinkClick("/about")}
         label="Tentang"
+        mobile={mobile}
       />
       {isLoggedIn ? (
         <>
@@ -488,7 +436,7 @@ const NavMenu = ({
               href="/dashboard"
               onClick={() => onLinkClick("/dashboard")}
               label="Dashboard Admin"
-              aria-label="Dashboard Admin"
+              mobile={mobile}
             />
           )}
           {!mobile && role === "USER" && (
@@ -496,12 +444,12 @@ const NavMenu = ({
               href="/user"
               onClick={() => onLinkClick("/user")}
               label="User Page"
-              aria-label="User Page"
+              mobile={mobile}
             />
           )}
           <button
             onClick={onLogout}
-            className="block px-4 py-2 text-left hover:bg-gray-100">
+            className={`${mobile ? 'block w-full text-left' : ''} px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded transition duration-150`}>
             Logout
           </button>
         </>
@@ -511,29 +459,52 @@ const NavMenu = ({
             href="/login"
             onClick={() => onLinkClick("/login")}
             label="Login"
-            mobile
+            mobile={mobile}
           />
           <NavLink
             href="/register"
             onClick={() => onLinkClick("/register")}
             label="Register"
-            mobile
+            mobile={mobile}
           />
         </>
       )}
-    </>
+    </div>
   );
 };
 
-const NavLink = ({ href, onClick, label, mobile, showArrow }: any) => (
+const NavLink = ({ href, onClick, label, mobile }: any) => (
   <Link
     href={href}
     onClick={onClick}
-    className={`block px-4 py-2 text-left hover:bg-gray-100 ${
-      mobile ? "text-lg" : ""
-    }`}>
-    {label} {showArrow && <ChevronDown className="inline ml-1" />}
+    className={`${
+      mobile 
+        ? 'block px-4 py-2 text-base' 
+        : 'inline-block px-2 py-1 text-sm'
+    } text-gray-700 hover:bg-gray-100 hover:text-primary rounded transition duration-150`}>
+    {label}
+  </Link>
+);
+
+const IconLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string }) => (
+  <Link href={href} className="text-gray-600 hover:text-primary transition-colors" aria-label={label}>
+    <Icon className="w-6 h-6" />
+  </Link>
+);
+
+const BottomNavItem = ({ href, icon: Icon, label, isActive, onClick }: any) => (
+  <Link
+    href={href || '#'}
+    onClick={onClick}
+    className={`group flex flex-col items-center py-2 relative z-10 
+    transition-all duration-300 rounded-2xl
+    ${isActive ? 'text-primary' : 'text-gray-600'}
+    hover:text-primary`}
+  >
+    <Icon className={`w-6 h-6 transition-all duration-300 ${isActive ? 'scale-110' : 'scale-100'} group-hover:scale-110`} />
+    <span className={`text-xs mt-1 transition-all duration-300 ${isActive ? 'font-medium' : 'font-normal'} group-hover:font-medium`}>{label}</span>
   </Link>
 );
 
 export default Navbar;
+

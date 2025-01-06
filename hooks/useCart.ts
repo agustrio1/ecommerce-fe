@@ -4,7 +4,6 @@ import * as React from "react";
 import { getToken } from "@/utils/token";
 import { parseJwt } from "@/utils/parseJwt";
 import { useToast } from "@/hooks/use-toast";
-import { formatRupiah } from "@/utils/currency";
 import { useRouter } from "next/navigation";
 
 interface CartImage {
@@ -89,7 +88,32 @@ export function useCart() {
     cartItemId: string,
     operation: "increase" | "decrease"
   ) => {
-    setLoading(true);
+    const currentItem = cartItems.find((item) => item.id === cartItemId);
+    if (!currentItem) {
+      toast({
+        title: "Error",
+        description: "Item tidak ditemukan di keranjang.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newQuantity =
+      operation === "increase"
+        ? currentItem.quantity + 1
+        : currentItem.quantity - 1;
+
+    if (newQuantity < 1) {
+      handleDeleteItem(cartItemId);
+      return;
+    }
+
+    // Optimistic update
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === cartItemId ? { ...item, quantity: newQuantity } : item
+      )
+    );
 
     try {
       const token = await getToken();
@@ -100,27 +124,6 @@ export function useCart() {
           variant: "destructive",
         });
         router.push("/login");
-        return;
-      }
-
-      const currentItem = cartItems.find((item) => item.id === cartItemId);
-      if (!currentItem) {
-        toast({
-          title: "Error",
-          description: "Item tidak ditemukan di keranjang.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
-      const newQuantity =
-        operation === "increase"
-          ? currentItem.quantity + 1
-          : currentItem.quantity - 1;
-
-      if (newQuantity < 1) {
-        await handleDeleteItem(cartItemId);
         return;
       }
 
@@ -144,34 +147,30 @@ export function useCart() {
         const errorData = await res.json();
         throw new Error(errorData.message || "Gagal memperbarui kuantitas.");
       }
-
+    } catch (error) {
+      // Revert optimistic update on error
       setCartItems((prevItems) =>
         prevItems.map((item) =>
-          item.id === cartItemId ? { ...item, quantity: newQuantity } : item
+          item.id === cartItemId ? { ...item, quantity: currentItem.quantity } : item
         )
       );
-
-      toast({
-        title: "Sukses",
-        description: "Kuantitas berhasil diperbarui.",
-      });
-    } catch (error) {
       toast({
         title: "Error",
         description: "Terjadi kesalahan saat memperbarui kuantitas.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
-    const token = await getToken();
-    if (!token) return;
+    // Optimistic update
+    const deletedItem = cartItems.find(item => item.id === itemId);
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
 
-    setLoading(true);
     try {
+      const token = await getToken();
+      if (!token) return;
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/carts/${itemId}`,
         {
@@ -183,17 +182,20 @@ export function useCart() {
         }
       );
 
-      if (response.ok) {
-        setCartItems((prevItems) =>
-          prevItems.filter((item) => item.id !== itemId)
-        );
-      } else {
-        setError("Gagal menghapus item.");
+      if (!response.ok) {
+        throw new Error("Gagal menghapus item.");
       }
     } catch (error) {
+      // Revert optimistic update on error
+      if (deletedItem) {
+        setCartItems((prevItems) => [...prevItems, deletedItem]);
+      }
       setError("Terjadi kesalahan saat menghapus item.");
-    } finally {
-      setLoading(false);
+      toast({
+        title: "Error",
+        description: "Gagal menghapus item dari keranjang.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -205,3 +207,4 @@ export function useCart() {
     handleDeleteItem,
   };
 }
+

@@ -57,32 +57,36 @@ export default function ProductPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Manage Products</h1>
+      <h1 className="text-2xl font-bold mb-6">Kelola Produk</h1>
 
       <Button
         onClick={() => {
           setIsModalOpen(true);
           resetForm();
         }}>
-        Add Product
+        Tambah Produk
       </Button>
 
       <div className="mt-6">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Image</TableHead>
-              <TableHead>Weight</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Nama</TableHead>
+              <TableHead>Gambar</TableHead>
+              <TableHead>Berat</TableHead>
+              <TableHead>Harga</TableHead>
+              <TableHead>Stok</TableHead>
+              <TableHead>Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {products.map((product) => (
               <TableRow key={product.id}>
-                <TableCell>{product.name}</TableCell>
+                <TableCell>
+                  {product.name.length > 20
+                    ? `${product.name.slice(0, 20)}...`
+                    : product.name}
+                </TableCell>
                 <TableCell>
                   {product.images.length > 0 && (
                     <img
@@ -103,7 +107,7 @@ export default function ProductPage() {
                       setDeleteProductId(product.id as string);
                       setIsDeleteModalOpen(true);
                     }}>
-                    Delete
+                    Hapus
                   </Button>
                 </TableCell>
               </TableRow>
@@ -116,18 +120,16 @@ export default function ProductPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {isEditMode ? "Edit Product" : "Add Product"}
+              {isEditMode ? "Edit Produk" : "Tambah Produk"}
             </DialogTitle>
             <DialogDescription>
-              {isEditMode
-                ? "Edit the product details."
-                : "Fill in the product details."}
+              {isEditMode ? "Edit detail produk." : "Isi detail produk."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label>Name</Label>
+              <Label>Nama</Label>
               <Input
                 value={formData.name}
                 onChange={(e) => updateFormField("name", e.target.value)}
@@ -135,34 +137,40 @@ export default function ProductPage() {
             </div>
 
             <div>
-              <Label>Weight</Label>
+              <Label>Berat</Label>
               <Input
                 type="number"
                 value={formData.weight}
-                onChange={(e) => updateFormField("weight", Number(e.target.value))}
+                onChange={(e) =>
+                  updateFormField("weight", Number(e.target.value))
+                }
               />
             </div>
 
             <div>
-              <Label>Price</Label>
+              <Label>Harga</Label>
               <Input
                 type="number"
                 value={formData.price}
-                onChange={(e) => updateFormField("price", Number(e.target.value))}
+                onChange={(e) =>
+                  updateFormField("price", Number(e.target.value))
+                }
               />
             </div>
 
             <div>
-              <Label>Stock</Label>
+              <Label>Stok</Label>
               <Input
                 type="number"
                 value={formData.stock}
-                onChange={(e) => updateFormField("stock", Number(e.target.value))}
+                onChange={(e) =>
+                  updateFormField("stock", Number(e.target.value))
+                }
               />
             </div>
 
             <div>
-              <Label>Description</Label>
+              <Label>Deskripsi</Label>
               <Input
                 value={formData.description}
                 onChange={(e) => updateFormField("description", e.target.value)}
@@ -170,12 +178,12 @@ export default function ProductPage() {
             </div>
 
             <div>
-              <Label>Category</Label>
+              <Label>Kategori</Label>
               <select
                 value={formData.categoryId}
                 onChange={(e) => updateFormField("categoryId", e.target.value)}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
-                <option value="">Select Category</option>
+                <option value="">Pilih Kategori</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -188,19 +196,22 @@ export default function ProductPage() {
               <Label>Tags</Label>
               <Input
                 value={formData.tags.join(",")}
-                onChange={(e) => updateFormField("tags", e.target.value.split(","))}
-                placeholder="Comma-separated tags"
+                onChange={(e) =>
+                  updateFormField("tags", e.target.value.split(","))
+                }
+                placeholder="Tags dipisahkan koma"
               />
             </div>
 
             <div className="col-span-1 md:col-span-2">
-              <Label>Upload Images</Label>
+              <Label>Unggah Gambar</Label>
               <div
                 {...getRootProps()}
                 className="border-2 border-dashed border-gray-400 p-4 cursor-pointer mt-1">
                 <input {...getInputProps()} />
                 <p className="text-center text-gray-500">
-                  Drag & drop some files here, or click to select files (max 5)
+                  Seret & lepas beberapa file di sini, atau klik untuk memilih
+                  file (maksimal 5)
                 </p>
               </div>
               <div className="mt-2">
@@ -217,10 +228,10 @@ export default function ProductPage() {
           </div>
 
           <DialogFooter>
-            <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
+            <Button onClick={() => setIsModalOpen(false)}>Batal</Button>
             <Button
               onClick={isEditMode ? handleUpdateProduct : handleAddProduct}>
-              {isEditMode ? "Update" : "Add"}
+              {isEditMode ? "Perbarui" : "Tambah"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -229,15 +240,15 @@ export default function ProductPage() {
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Product</DialogTitle>
+            <DialogTitle>Hapus Produk</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this product?
+              Apakah Anda yakin ingin menghapus produk ini?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
+            <Button onClick={() => setIsDeleteModalOpen(false)}>Batal</Button>
             <Button variant="destructive" onClick={handleDeleteProduct}>
-              Delete
+              Hapus
             </Button>
           </DialogFooter>
         </DialogContent>

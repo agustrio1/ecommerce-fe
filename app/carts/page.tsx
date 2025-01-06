@@ -3,22 +3,32 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { formatRupiah } from "@/utils/currency";
-import { Trash2, Plus, Minus, Loader2, ShoppingCart } from "lucide-react";
+import { Trash2, Plus, Minus, Loader2, ShoppingCart } from 'lucide-react';
 import Image from "next/image";
-import { useCart } from "@/hooks/useCart"; 
+import { useRouter } from "next/navigation";
+import { useCart } from "@/hooks/useCart";
+import { motion, AnimatePresence } from "framer-motion";
+
 export default function CartPage() {
   const { cartItems, loading, error, handleUpdateQuantity, handleDeleteItem } =
     useCart();
+  const router = useRouter();
+
+  const totalPrice = React.useMemo(() => {
+    return cartItems.reduce(
+      (total, item) => total + item.product.price * item.quantity,
+      0
+    );
+  }, [cartItems]);
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-6 pt-20">
+      <div className="container mx-auto px-4 py-12 pt-24">
         <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-800">
           Keranjang Belanja Anda
         </h1>
-        <div className="flex justify-center">
-          <Loader2 className="mr-2 animate-spin" />
-          <span>Loading...</span>
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
         </div>
       </div>
     );
@@ -26,109 +36,124 @@ export default function CartPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-6 pt-20">
+      <div className="container mx-auto px-4 py-12 pt-24">
         <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-800">
           Keranjang Belanja Anda
         </h1>
-        <p className="text-red-500 text-center">{error}</p>
+        <p className="text-red-500 text-center text-lg">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 pt-20">
-      <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-800">
+    <div className="container mx-auto px-4 py-12 pt-24">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-12 text-center text-gray-800">
         Keranjang Belanja Anda
       </h1>
 
       {cartItems.length === 0 ? (
-        <div className="text-center space-y-4">
-          <ShoppingCart size={48} className="mx-auto text-gray-400" />
-          <p className="text-xl text-gray-600">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center space-y-6"
+        >
+          <ShoppingCart size={64} className="mx-auto text-gray-400" />
+          <p className="text-2xl text-gray-600">
             Keranjang Anda kosong. Mari mulai belanja!
           </p>
           <Button
-            onClick={() => (window.location.href = "/products")}
-            className="mt-4 bg-blue-600 text-white hover:bg-blue-700 transition px-6 py-2 rounded-lg font-semibold">
+            onClick={() => router.push("/products")}
+            className="mt-6 bg-blue-600 text-white hover:bg-blue-700 transition px-8 py-3 rounded-full text-lg font-semibold"
+          >
             Mulai Belanja
           </Button>
-        </div>
+        </motion.div>
       ) : (
-        <ul className="space-y-6">
-          {cartItems.map((item) => (
-            <li
-              key={item.id}
-              className="bg-white shadow-lg p-4 sm:p-6 rounded-lg flex flex-wrap sm:flex-nowrap items-center justify-between transition hover:shadow-xl">
-              <div className="flex items-center space-x-4 sm:space-x-6 w-full sm:w-auto">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 relative">
-                  <Image
-                    src={
-                      item.product?.images?.length &&
-                      item.product.images.length > 0
-                        ? item.product.images[0]?.image
-                        : "/placeholder-card.jpg"
-                    }
-                    alt={item.product?.name || "Product image"}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="rounded-md object-cover"
-                  />
+        <div className="space-y-8">
+          <AnimatePresence>
+            {cartItems.map((item) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white shadow-lg p-6 rounded-xl flex flex-col sm:flex-row items-center justify-between transition hover:shadow-xl"
+              >
+                <div className="flex items-center space-x-6 w-full sm:w-auto mb-4 sm:mb-0">
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 relative rounded-lg overflow-hidden">
+                    <Image
+                      src={
+                        item.product?.images?.length &&
+                        item.product.images.length > 0
+                          ? item.product.images[0]?.image
+                          : "/placeholder-card.svg"
+                      }
+                      alt={item.product?.name || "Product image"}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover"
+                    />
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      {item.product?.name}
+                    </h3>
+                    <div className="text-lg font-bold text-blue-600">
+                      {formatRupiah(item.product?.price)}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="w-full sm:w-auto">
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-700">
-                    {item.product?.name}
-                  </h3>
-                  <div className="text-sm text-gray-500 mt-2">
-                    Jumlah: <span className="font-medium">{item.quantity}</span>
+                <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+                  <div className="flex items-center border border-gray-300 rounded-full">
+                    <Button
+                      onClick={() => handleUpdateQuantity(item.id, "decrease")}
+                      variant="ghost"
+                      className="rounded-l-full px-3 py-1 hover:bg-gray-100"
+                    >
+                      <Minus size={20} />
+                    </Button>
+                    <span className="px-4 py-1 text-lg font-semibold">
+                      {item.quantity}
+                    </span>
+                    <Button
+                      onClick={() => handleUpdateQuantity(item.id, "increase")}
+                      variant="ghost"
+                      className="rounded-r-full px-3 py-1 hover:bg-gray-100"
+                    >
+                      <Plus size={20} />
+                    </Button>
                   </div>
-                  <div className="font-bold text-lg sm:text-2xl text-gray-800 mt-2">
-                    {formatRupiah(item.product?.price * item.quantity)}
-                  </div>
+                  <Button
+                    onClick={() => handleDeleteItem(item.id)}
+                    variant="outline"
+                    className="text-red-500 border-red-500 hover:bg-red-50 transition rounded-full p-2"
+                  >
+                    <Trash2 size={20} />
+                  </Button>
                 </div>
-              </div>
-              <div className="flex items-center space-x-2 sm:space-x-4 mt-4 sm:mt-0 w-full sm:w-auto justify-end">
-                <Button
-                  onClick={() => handleUpdateQuantity(item.id, "increase")}
-                  variant="outline"
-                  className="text-green-500 border-green-500 hover:bg-green-500 hover:text-white transition w-12 h-12 flex items-center justify-center">
-                  <Plus size={24} />
-                </Button>
-                <Button
-                  onClick={() => handleUpdateQuantity(item.id, "decrease")}
-                  variant="outline"
-                  className="text-yellow-500 border-yellow-500 hover:bg-yellow-500 hover:text-white transition w-12 h-12 flex items-center justify-center">
-                  <Minus size={24} />
-                </Button>
-                <Button
-                  onClick={() => handleDeleteItem(item.id)}
-                  variant="outline"
-                  className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white transition w-12 h-12 flex items-center justify-center">
-                  <Trash2 size={24} />
-                </Button>
-              </div>
-            </li>
-          ))}
-          {cartItems.length > 0 && (
-            <div className="text-left font-semibold text-xl mt-6">
-              Total Harga:{" "}
-              {formatRupiah(
-                cartItems.reduce(
-                  (total, item) => total + item.product.price * item.quantity,
-                  0
-                )
-              )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          <div className="bg-gray-50 p-6 rounded-xl shadow-md">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-xl font-semibold text-gray-700">Total:</span>
+              <span className="text-2xl font-bold text-blue-600">{formatRupiah(totalPrice)}</span>
             </div>
-          )}
-        </ul>
-      )}
-      {cartItems.length > 0 && (
-        <Button
-          onClick={() => alert("Proceeding to checkout...")}
-          className="mt-8 w-full py-3 sm:py-4 bg-blue-600 text-white rounded-lg text-base sm:text-lg font-semibold shadow-lg hover:bg-blue-700 transition">
-          Lanjutkan ke Pembayaran
-        </Button>
+            <Button
+              onClick={() => router.push("/checkouts")}
+              className="w-full py-4 bg-blue-600 text-white rounded-full text-lg font-semibold shadow-lg hover:bg-blue-700 transition"
+            >
+              Lanjutkan ke Pembayaran
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
 }
+

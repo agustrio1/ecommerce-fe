@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
-import Image from 'next/image';
-import Link from 'next/link';
+import * as React from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
+import Image from "next/image";
+import Link from "next/link";
 
 import "swiper/css";
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 interface Category {
   id: string;
@@ -48,8 +48,8 @@ const CategorySection: React.FC<CategorySectionProps> = ({ categories }) => {
             slidesPerView={2}
             spaceBetween={24}
             navigation={{
-              nextEl: '.swiper-button-next',
-              prevEl: '.swiper-button-prev',
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
             }}
             pagination={{
               clickable: true,
@@ -70,20 +70,22 @@ const CategorySection: React.FC<CategorySectionProps> = ({ categories }) => {
                 slidesPerView: 6,
               },
             }}
-            className="py-4"
-          >
+            className="py-4">
             {categories.map((category) => (
               <SwiperSlide key={category.id}>
-                <Link href={`/categories/${category.slug}`} className="block group">
+                <Link
+                  href={`/categories/${category.slug}`}
+                  className="block group">
                   <article className="relative aspect-square rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
                     <Image
-                      src={category.image || ''}
+                      src={category.image || ""}
                       alt={category.name}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-110"
                       loading="lazy"
                       placeholder="blur"
                       blurDataURL="/placeholder-card.svg"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
                     <div className="absolute inset-0 flex flex-col justify-end p-4">

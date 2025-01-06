@@ -4,11 +4,11 @@ import * as React from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getToken } from "@/utils/token";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react"; 
+import { ShoppingCart, Loader2 } from 'lucide-react';
 
-export default function AddToCart({ productId }: any) {
+export default function AddToCart({ productId }: { productId: string }) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = React.useState(false); 
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const handleAddToCart = async () => {
     setIsLoading(true);
@@ -22,7 +22,6 @@ export default function AddToCart({ productId }: any) {
           description: "Token tidak ditemukan. Silakan login ulang.",
           variant: "destructive",
         });
-        setIsLoading(false); 
         return;
       }
 
@@ -40,7 +39,6 @@ export default function AddToCart({ productId }: any) {
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.error("Backend Error:", errorData);
         throw new Error(errorData.message || "Gagal menambahkan ke keranjang");
       }
 
@@ -57,18 +55,23 @@ export default function AddToCart({ productId }: any) {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full">
-    <Button onClick={handleAddToCart} disabled={isLoading} className="w-full relative flex items-center justify-center">
-      {isLoading && (
-        <Loader2 className="animate-spin mr-2 absolute" style={{ left: "50%", transform: "translateX(-50%)" }} />
+    <Button 
+      onClick={handleAddToCart} 
+      disabled={isLoading} 
+      className="w-full h-12 text-base font-semibold transition-all duration-300 transform hover:scale-105"
+    >
+      {isLoading ? (
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+      ) : (
+        <ShoppingCart className="mr-2 h-5 w-5" />
       )}
-      {!isLoading ? "Tambah ke Keranjang" : "Sedang Menambahkan..."}
+      {isLoading ? "Menambahkan..." : "Tambah ke Keranjang"}
     </Button>
-    </div>
   );
 }
+
