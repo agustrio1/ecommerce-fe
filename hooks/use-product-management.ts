@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getToken } from "@/utils/token";
@@ -39,7 +37,7 @@ interface ProductForm {
 
 export const useProductManagement = () => {
   const { toast } = useToast();
-  
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -48,7 +46,9 @@ export const useProductManagement = () => {
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(10);
   const [formData, setFormData] = useState<ProductForm>({
     name: "",
     description: "",
@@ -62,7 +62,7 @@ export const useProductManagement = () => {
   useEffect(() => {
     fetchCategories();
     fetchProducts();
-  }, []);
+  }, [currentPage]);
 
   const fetchCategories = async () => {
     try {
@@ -80,10 +80,18 @@ export const useProductManagement = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products?page=${currentPage}&limit=${limit}`);
       const data = await res.json();
-      setProducts(data);
+      if (data && data.status === "success" && Array.isArray(data.data)) {
+        setProducts(data.data);
+        setTotalPages(data.meta.totalPages);
+      } else {
+        console.error("Unexpected data structure:", data);
+        setProducts([]);
+        setTotalPages(1);
+      }
     } catch (error) {
+      console.error("Error fetching products:", error);
       toast({
         title: "Error",
         description: "Failed to fetch products",
@@ -277,6 +285,29 @@ export const useProductManagement = () => {
     }));
   };
 
+  // Pagination Handlers
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return {
     // State
     categories,
@@ -287,7 +318,9 @@ export const useProductManagement = () => {
     isEditMode,
     imageFiles,
     formData,
-    
+    currentPage,
+    totalPages,
+
     // Actions
     setIsModalOpen,
     setIsDeleteModalOpen,
@@ -299,5 +332,9 @@ export const useProductManagement = () => {
     resetForm,
     handleImageFiles,
     updateFormField,
+    goToPage,
+    nextPage,
+    prevPage,
+    handlePageChange,
   };
 };

@@ -12,19 +12,16 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const formattedPrice = new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR'
+  const formattedPrice = new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
   }).format(product.price);
 
   return (
-    <Link 
-      href={`/product/${product.id}`}
-      className="group"
-    >
+    <Link href={`/product/${product.id}`} className="group">
       <div className="aspect-square relative rounded-lg overflow-hidden bg-gray-100 mb-3">
         <Image
-          src={product.images[0]?.image as any || ""}
+          src={(product.images[0]?.image as any) || ""}
           alt={product.name}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -33,11 +30,11 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
       <div className="space-y-1">
         <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-          {product.name}
+          {product.name.length > 20
+            ? `${product.name.slice(0, 20)}...`
+            : product.name}
         </h3>
-        <p className="text-lg font-semibold text-gray-900">
-          {formattedPrice}
-        </p>
+        <p className="text-lg font-semibold text-gray-900">{formattedPrice}</p>
       </div>
     </Link>
   );

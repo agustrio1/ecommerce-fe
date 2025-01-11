@@ -16,4 +16,27 @@ export interface OrderItem {
     total: number;
     status: string;
     orderItems: OrderItem[];
+    address: {
+      name: string;
+      phone: string;
+      address1: string;
+      address2?: string;
+      city: string;
+      state: string;
+      postalCode: string
+      status: string;
+      user: {
+        name: string;
+      }
+    };
+  }
+
+ export  interface OrdersResponse {
+    data: Order[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
   }

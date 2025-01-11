@@ -1,10 +1,10 @@
-import React from 'react';
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {ChevronRight} from "lucide-react";
-import CategorySection from '@/components/CategorySection';
-import HeroBanner from '@/components/HeroBanner';
-import FeatureSection from '@/components/FeatureSection';
+import { ChevronRight } from "lucide-react";
+import CategorySection from "@/components/CategorySection";
+import HeroBanner from "@/components/HeroBanner";
+import FeatureSection from "@/components/FeatureSection";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface Product {
@@ -24,9 +24,9 @@ interface Category {
 }
 
 function ProductCard({ product }: { product: Product }) {
-  const formattedPrice = new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
+  const formattedPrice = new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(product.price);
@@ -49,14 +49,16 @@ function ProductCard({ product }: { product: Product }) {
       </div>
       <CardContent className="p-4 space-y-2">
         <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
-          {product.name}
+          {product.name.length > 20
+            ? `${product.name.slice(0, 20)}...`
+            : product.name}
         </h3>
         <div className="space-y-1">
-          <p className="text-lg font-bold text-blue-600">
-            {formattedPrice}
-          </p>
+          <p className="text-lg font-bold text-blue-600">{formattedPrice}</p>
           {product.description && (
-            <p className="text-sm text-gray-500 line-clamp-2">{product.description}</p>
+            <p className="text-sm text-gray-500 line-clamp-2">
+              {product.description}
+            </p>
           )}
         </div>
       </CardContent>
@@ -79,10 +81,8 @@ async function fetchCategories(): Promise<Category[]> {
   }
 
   const categories = await res.json();
-
   return categories;
 }
-
 
 async function fetchProducts(): Promise<Product[]> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -90,7 +90,7 @@ async function fetchProducts(): Promise<Product[]> {
     throw new Error("Environment variable NEXT_PUBLIC_API_URL is not set.");
   }
 
-  const res = await fetch(`${apiUrl}/products`, {
+  const res = await fetch(`${apiUrl}/products?page=1&limit=10`, {
     next: { revalidate: 60 },
   });
 
@@ -98,40 +98,51 @@ async function fetchProducts(): Promise<Product[]> {
     throw new Error("Failed to fetch products");
   }
 
-  return res.json();
+  const response = await res.json();
+  return response.data || [];
 }
 
 export default async function HomePage() {
-  const [products, categories] = await Promise.all([
-    fetchProducts(),
-    fetchCategories(),
-  ]);
+  try {
+    const [products, categories] = await Promise.all([
+      fetchProducts(),
+      fetchCategories(),
+    ]);
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
-      <HeroBanner />
-      <FeatureSection />
-      
-      {/* Kategori */}
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
+        <HeroBanner />
+        <FeatureSection />
 
-      <CategorySection categories={categories} /> 
+        {/* Kategori */}
+        <CategorySection categories={categories} />
 
-      {/* Produk Terbaru */}
-      <section>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Produk Terbaru</h2>
-          <Link href="/products" className="text-blue-600 hover:text-blue-700 flex items-center">
-            Lihat Semua <ChevronRight size={20} />
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {products.map((product) => (
-            <Link key={product.id} href={`/products/${product.slug}`}>
-              <ProductCard product={product} />
+        {/* Produk Terbaru */}
+        <section>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Produk Terbaru</h2>
+            <Link
+              href="/products"
+              className="text-blue-600 hover:text-blue-700 flex items-center">
+              Lihat Semua <ChevronRight size={20} />
             </Link>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {Array.isArray(products) && products.length > 0 ? (
+              products.map((product) => (
+                <Link key={product.id} href={`/products/${product.slug}`}>
+                  <ProductCard product={product} />
+                </Link>
+              ))
+            ) : (
+              <p>Tidak ada produk tersedia.</p>
+            )}
+          </div>
+        </section>
+      </div>
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    return <div>Error loading products. Please try again later.</div>;
+  }
 }

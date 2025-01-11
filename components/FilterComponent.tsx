@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatRupiah } from "@/utils/currency";
-import { ShoppingBag, ArrowUpDown, Search } from "lucide-react";
+import { ShoppingBag, ArrowUpDown, Search } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 
 interface ProductImage {
@@ -33,13 +33,18 @@ interface Product {
 
 interface FilterProps {
   products: Product[];
+  totalProducts: number;
 }
 
-const FilterComponent = ({ products }: FilterProps) => {
+const FilterComponent = ({ products, totalProducts }: FilterProps) => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
   const [activeFilter, setActiveFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage] = useState(10); // Number of products per page
   const [isLoading, setIsLoading] = useState(true);
+
+  const totalPages = Math.ceil(totalProducts / productsPerPage);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -49,6 +54,7 @@ const FilterComponent = ({ products }: FilterProps) => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Handle filter change
   const handleFilterChange = (value: string) => {
     setActiveFilter(value);
     let sortedProducts = [...products];
@@ -72,6 +78,7 @@ const FilterComponent = ({ products }: FilterProps) => {
     setFilteredProducts(sortedProducts);
   };
 
+  // Handle search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
@@ -83,6 +90,17 @@ const FilterComponent = ({ products }: FilterProps) => {
     setFilteredProducts(searchResults);
   };
 
+  // Get current products for the page
+  const currentProducts = filteredProducts.slice(
+    (currentPage - 1) * productsPerPage,
+    currentPage * productsPerPage
+  );
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 mb-12 lg:mb-8">
       {/* Header Section */}
@@ -90,17 +108,17 @@ const FilterComponent = ({ products }: FilterProps) => {
         <div className="flex items-center justify-center gap-2 mb-3">
           <ShoppingBag className="w-12 h-12 text-blue-600" />
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
           Temukan Produk Kami
         </h1>
-        <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
           Jelajahi koleksi produk premium kami yang dipilih dengan cermat untuk
           kualitas dan gaya.
         </p>
       </div>
 
       {/* Filter Section */}
-      <Card className="mb-8">
+      <Card className="mb-8 shadow-lg">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="w-full md:w-1/3">
@@ -150,7 +168,7 @@ const FilterComponent = ({ products }: FilterProps) => {
       <div className="flex items-center gap-2 mb-6">
         <ArrowUpDown className="w-5 h-5 text-blue-600" />
         <span className="text-sm md:text-base font-medium text-gray-700">
-          Menampilkan {filteredProducts.length} produk
+          Menampilkan {currentProducts.length} produk
         </span>
       </div>
 
@@ -166,7 +184,7 @@ const FilterComponent = ({ products }: FilterProps) => {
                 </CardContent>
               </Card>
             ))
-          : filteredProducts.map((product) => (
+          : currentProducts.map((product) => (
               <Link href={`/products/${product.slug}`} key={product.id}>
                 <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg">
                   <div className="relative aspect-square overflow-hidden bg-gray-100">
@@ -176,9 +194,9 @@ const FilterComponent = ({ products }: FilterProps) => {
                           ?.image || "/placeholder-card.svg"
                       }
                       alt={product.name}
-                      layout="fill"
-                      objectFit="cover"
-                      className="transform transition-transform duration-300 hover:scale-110"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover transform transition-transform duration-300 hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
                   </div>
@@ -202,6 +220,36 @@ const FilterComponent = ({ products }: FilterProps) => {
               </Link>
             ))}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8">
+          <Button
+            variant="outline"
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+          >
+            Prev
+          </Button>
+          {Array.from({ length: totalPages }).map((_, index) => (
+            <Button
+              key={index}
+              variant="outline"
+              className={`mx-2 ${currentPage === index + 1 ? 'bg-blue-500 text-white' : ''}`}
+              onClick={() => handlePageChange(index + 1)}
+            >
+              {index + 1}
+            </Button>
+          ))}
+          <Button
+            variant="outline"
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

@@ -77,6 +77,7 @@ export default function UserDashboard() {
         }
 
         const ordersData = await ordersResponse.json();
+        console.log(ordersData);
         setRecentOrders(ordersData.data.slice(0, 5));
 
         // Calculate user stats

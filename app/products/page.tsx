@@ -42,12 +42,12 @@ function ProductSkeleton() {
 }
 
 export default async function Page() {
-  const products: Product[] = await getProducts(); 
+  const { products, meta } = await getProducts(); 
 
   return (
     <section className="bg-gradient-to-b from-blue-50 to-white min-h-screen pt-16">
       <Suspense fallback={<ProductSkeleton />}>
-        <FilterComponent products={products} />
+      <FilterComponent products={products} totalProducts={meta.totalPages} />
       </Suspense>
     </section>
   );

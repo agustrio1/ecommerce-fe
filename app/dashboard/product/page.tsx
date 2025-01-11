@@ -35,6 +35,9 @@ export default function ProductPage() {
     setIsModalOpen,
     setIsDeleteModalOpen,
     setDeleteProductId,
+    handlePageChange,
+    currentPage,
+    totalPages,
     handleAddProduct,
     handleUpdateProduct,
     handleDeleteProduct,
@@ -67,53 +70,89 @@ export default function ProductPage() {
         Tambah Produk
       </Button>
 
-      <div className="mt-6">
+      <div className="mt-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead>Gambar</TableHead>
-              <TableHead>Berat</TableHead>
-              <TableHead>Harga</TableHead>
-              <TableHead>Stok</TableHead>
-              <TableHead>Aksi</TableHead>
+            <TableRow className="bg-gray-50">
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</TableHead>
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gambar</TableHead>
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Berat</TableHead>
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</TableHead>
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</TableHead>
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell>
-                  {product.name.length > 20
-                    ? `${product.name.slice(0, 20)}...`
-                    : product.name}
-                </TableCell>
-                <TableCell>
-                  {product.images.length > 0 && (
-                    <img
-                      src={product.images[0].image}
-                      alt={product.name}
-                      className="h-16 w-16 object-cover"
-                    />
-                  )}
-                </TableCell>
-                <TableCell>{product.weight}</TableCell>
-                <TableCell>{product.price}</TableCell>
-                <TableCell>{product.stock}</TableCell>
-                <TableCell>
-                  <Button onClick={() => openEditModal(product)}>Edit</Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      setDeleteProductId(product.id as string);
-                      setIsDeleteModalOpen(true);
-                    }}>
-                    Hapus
-                  </Button>
+            {products && products.length > 0 ? (
+              products.map((product, index) => (
+                <TableRow
+                  key={product.id}
+                  className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition-colors duration-200`}
+                >
+                  <TableCell className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap">
+                    {product.name.length > 20
+                      ? `${product.name.slice(0, 20)}...`
+                      : product.name}
+                  </TableCell>
+                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
+                    {product.images && product.images.length > 0 && (
+                      <img
+                        src={product.images[0].image}
+                        alt={product.name}
+                        className="h-16 w-16 object-cover rounded-md shadow-sm"
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">{product.weight} kg</TableCell>
+                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">Rp {product.price.toLocaleString()}</TableCell>
+                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">{product.stock}</TableCell>
+                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
+                    <div className="flex space-x-2">
+                      <Button
+                        onClick={() => openEditModal(product)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-xs"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          setDeleteProductId(product.id as string);
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-xs"
+                      >
+                        Hapus
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-4 text-gray-500">
+                  Tidak ada produk
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
+      </div>
+      {/* Pagination Controls */}
+      <div className="mt-4 flex justify-between items-center">
+        <Button
+          disabled={currentPage === 1}
+          onClick={() => handlePageChange(currentPage - 1)}>
+          Sebelumnya
+        </Button>
+        <span>
+          Halaman {currentPage} dari {totalPages}
+        </span>
+        <Button
+          disabled={currentPage === totalPages}
+          onClick={() => handlePageChange(currentPage + 1)}>
+          Selanjutnya
+        </Button>
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -258,3 +297,4 @@ export default function ProductPage() {
     </div>
   );
 }
+
