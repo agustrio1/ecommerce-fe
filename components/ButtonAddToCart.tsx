@@ -5,10 +5,12 @@ import { useToast } from "@/hooks/use-toast";
 import { getToken } from "@/utils/token";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Loader2 } from 'lucide-react';
+import { useNavbarStore } from "@/stores/useNavbarStore";
 
 export default function AddToCart({ productId }: { productId: string }) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
+  const incrementCartItemCount = useNavbarStore((state) => state.incrementCartItemCount);
 
   const handleAddToCart = async () => {
     setIsLoading(true);
@@ -47,6 +49,8 @@ export default function AddToCart({ productId }: { productId: string }) {
         title: "Sukses",
         description: responseData.message || "Produk berhasil ditambahkan ke keranjang",
       });
+      
+      incrementCartItemCount();
     } catch (error) {
       console.error("Add to cart error:", error);
       toast({

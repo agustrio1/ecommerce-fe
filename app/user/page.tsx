@@ -1,13 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Package, TrendingUp, AlertCircle } from "lucide-react";
+import { ShoppingBag, Package, TrendingUp, AlertCircle, Download, Eye } from 'lucide-react';
 import Link from "next/link";
-import { getToken } from "@/utils/token";
-import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -18,108 +15,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-interface Order {
-  id: string;
-  createdAt: string;
-  total: number;
-  status: string;
-}
-
-interface UserStats {
-  totalOrders: number;
-  totalSpent: number;
-  averageOrderValue: number;
-}
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { useUserDashboard } from "@/hooks/useUserDashboard";
+import { useCSVGenerator } from "@/hooks/useCSVGenerator";
+import { getProgressColor, getStatusColor } from "@/utils/getStatusColor";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function UserDashboard() {
-  const { toast } = useToast();
-  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
-  const [userStats, setUserStats] = useState<UserStats>({
-    totalOrders: 0,
-    totalSpent: 0,
-    averageOrderValue: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState("");
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = await getToken();
-        if (!token) {
-          toast({
-            title: "Error",
-            description: "Token tidak ditemukan. Harap login ulang.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        const userPayload = JSON.parse(atob(token.split(".")[1]));
-        const userId = userPayload?.id;
-        setUserName(userPayload?.name || "Pengguna");
-
-        if (!userId) {
-          throw new Error("ID pengguna tidak ditemukan dalam token.");
-        }
-
-        // Fetch orders
-        const ordersResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/orders/user/${userId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        if (!ordersResponse.ok) {
-          throw new Error("Gagal mengambil data pesanan.");
-        }
-
-        const ordersData = await ordersResponse.json();
-        console.log(ordersData);
-        setRecentOrders(ordersData.data.slice(0, 5));
-
-        // Calculate user stats
-        const totalOrders = ordersData.data.length;
-        const totalSpent = ordersData.data.reduce(
-          (sum: number, order: Order) => sum + order.total,
-          0
-        );
-        const averageOrderValue =
-          totalOrders > 0 ? totalSpent / totalOrders : 0;
-
-        setUserStats({
-          totalOrders,
-          totalSpent,
-          averageOrderValue,
-        });
-      } catch (error: any) {
-        toast({
-          title: "Error",
-          description: error.message || "Terjadi kesalahan.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [toast]);
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "delivered":
-        return "bg-green-500";
-      case "processing":
-        return "bg-yellow-500";
-      case "shipped":
-        return "bg-blue-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
+  const { recentOrders, userStats, loading, userName } = useUserDashboard();
+  const { generateCSV, downloadCSV } = useCSVGenerator(recentOrders);
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -127,18 +39,62 @@ export default function UserDashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row justify-between items-start md:items-center p-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
             Selamat datang, {userName}!
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-sm md:text-base text-muted-foreground mt-1">
             Berikut adalah ringkasan aktivitas akun Anda.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/user/orders-history">Lihat Semua Aktivitas</Link>
-        </Button>
+        <div className="flex flex-col md:flex-row gap-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" onClick={generateCSV}>
+                <Eye className="mr-2 h-4 w-4" />
+                Pratinjau CSV
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>Pratinjau CSV</DialogTitle>
+                <DialogDescription>
+                  Berikut adalah pratinjau dari file CSV yang akan diunduh.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-4 max-h-96 overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID Pesanan</TableHead>
+                      <TableHead>Tanggal</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentOrders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell>{order.id}</TableCell>
+                        <TableCell>{new Date(order.createdAt).toLocaleDateString("id-ID")}</TableCell>
+                        <TableCell>Rp {order.total.toLocaleString()}</TableCell>
+                        <TableCell>{order.status}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Button onClick={downloadCSV} variant="default">
+            <Download className="mr-2 h-4 w-4" />
+            Unduh CSV
+          </Button>
+          <Button asChild>
+            <Link href="/user/orders-history">Lihat Semua Aktivitas</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -170,7 +126,7 @@ export default function UserDashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
         <Card className="col-span-1">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Pesanan Terakhir</CardTitle>
           </CardHeader>
           <CardContent>
@@ -208,9 +164,7 @@ export default function UserDashboard() {
                           </TableCell>
                           <TableCell>
                             <Badge
-                              className={`${getStatusColor(
-                                order.status
-                              )} text-white`}>
+                              className={`${getStatusColor(order.status)} text-white`}>
                               {order.status}
                             </Badge>
                           </TableCell>
@@ -236,45 +190,10 @@ export default function UserDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Pesanan Selesai</p>
-                <span className="text-sm text-muted-foreground">
-                  {Math.round(
-                    ((userStats.totalOrders * 0.8) / userStats.totalOrders) *
-                      100
-                  )}
-                  %
-                </span>
-              </div>
-              <Progress value={80} className="mt-2" />
-            </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Pesanan dalam Proses</p>
-                <span className="text-sm text-muted-foreground">
-                  {Math.round(
-                    ((userStats.totalOrders * 0.15) / userStats.totalOrders) *
-                      100
-                  )}
-                  %
-                </span>
-              </div>
-              <Progress value={15} className="mt-2" />
-            </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Pesanan Dibatalkan</p>
-                <span className="text-sm text-muted-foreground">
-                  {Math.round(
-                    ((userStats.totalOrders * 0.05) / userStats.totalOrders) *
-                      100
-                  )}
-                  %
-                </span>
-              </div>
-              <Progress value={5} className="mt-2" />
-            </div>
+            <OrderStatistic label="Pesanan Sukses" value={80} status="success" />
+            <OrderStatistic label="Pesanan Pending" value={15} status="pending" />
+            <OrderStatistic label="Pesanan Gagal" value={3} status="failed" />
+            <OrderStatistic label="Pesanan Dibatalkan" value={2} status="canceled" />
           </div>
         </CardContent>
       </Card>
@@ -307,6 +226,21 @@ function DashboardCard({
   );
 }
 
+function OrderStatistic({ label, value, status }: { label: string; value: number; status: string }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium">{label}</p>
+        <span className="text-sm text-muted-foreground">{value}%</span>
+      </div>
+      <Progress 
+        value={value} 
+        className={cn("mt-2", getProgressColor(status))}
+      />
+    </div>
+  )
+}
+
 function DashboardSkeleton() {
   return (
     <div className="space-y-8">
@@ -329,3 +263,4 @@ function DashboardSkeleton() {
     </div>
   );
 }
+

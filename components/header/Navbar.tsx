@@ -1,5 +1,16 @@
 import * as React from "react";
-import { ShoppingBag, Heart, Bell, ChevronDown, Search, Home, User, X, Loader2, Menu } from 'lucide-react';
+import {
+  ShoppingBag,
+  Heart,
+  Bell,
+  ChevronDown,
+  Search,
+  Home,
+  User,
+  X,
+  Loader2,
+  Menu,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { parseJwt } from "@/utils/parseJwt";
@@ -123,12 +134,18 @@ const Navbar = () => {
 
   const getSliderPosition = (tab: string) => {
     switch (tab) {
-      case 'home': return 'translate-x-0';
-      case 'search': return 'translate-x-full';
-      case 'wishlist': return 'translate-x-[200%]';
-      case 'notifications': return 'translate-x-[300%]';
-      case 'profile': return 'translate-x-[400%]';
-      default: return 'translate-x-0';
+      case "home":
+        return "translate-x-0";
+      case "search":
+        return "translate-x-full";
+      case "wishlist":
+        return "translate-x-[200%]";
+      case "notifications":
+        return "translate-x-[300%]";
+      case "profile":
+        return "translate-x-[400%]";
+      default:
+        return "translate-x-0";
     }
   };
 
@@ -137,13 +154,21 @@ const Navbar = () => {
       {/* Desktop Navigation */}
       <nav className="fixed top-0 left-0 right-0 bg-white shadow-md z-50 hidden md:block">
         <div className="container mx-auto max-w-7xl px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-4">
             <Link
               href="/"
-              className="text-2xl font-bold text-primary transition-colors duration-200 hover:text-primary/80"
+              className="flex items-center space-x-3 text-primary font-semibold hover:text-secondary transition-colors duration-300"
               aria-label="Home">
-              BrandLogo
+              <img
+                src="https://res.cloudinary.com/dctg4e1q8/image/upload/v1736860192/tfjxxvfgmmbtqnuczbvf.webp"
+                alt="Brand Logo"
+                className="w-12 h-12 rounded-full shadow-md hover:scale-105 transition-transform duration-300"
+              />
+              <span className="hidden sm:inline-block text-xl font-semibold">
+                Agus Store
+              </span>
             </Link>
+
             <div className="flex-1 max-w-xl mx-8">
               <form onSubmit={handleSearch} className="relative">
                 <Input
@@ -154,7 +179,11 @@ const Navbar = () => {
                   className="w-full pr-10 pl-10 py-2 border-none bg-gray-100 focus:ring-2 focus:ring-primary/50 rounded-full"
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <Button type="submit" size="sm" variant="ghost" className="absolute right-1 top-1/2 transform -translate-y-1/2">
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2">
                   Cari
                 </Button>
               </form>
@@ -163,26 +192,32 @@ const Navbar = () => {
                 <div className="absolute top-full left-0 right-0 bg-white shadow-lg rounded-md p-4 mt-2">
                   <Loader2 className="animate-spin mx-auto text-primary" />
                 </div>
-              ) : results.length > 0 && (
-                <ul className="absolute top-full left-0 right-0 bg-white shadow-lg rounded-md max-h-96 overflow-y-auto z-10 mt-2">
-                  {results.map((product) => (
-                    <li key={product.id} className="border-b last:border-b-0">
-                      <Link href={`/products/${product.slug}`} className="flex items-center space-x-4 p-4 hover:bg-gray-50 transition duration-150">
-                        <img
-                          src={product.images[0]?.image || "/placeholder.png"}
-                          alt={product.name}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                        <div>
-                          <h3 className="font-semibold text-sm">{product.name}</h3>
-                          <p className="text-primary font-medium">
-                            {formatRupiah(product.price)}
-                          </p>
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+              ) : (
+                results.length > 0 && (
+                  <ul className="absolute top-full left-0 right-0 bg-white shadow-lg rounded-md max-h-96 overflow-y-auto z-10 mt-2">
+                    {results.map((product) => (
+                      <li key={product.id} className="border-b last:border-b-0">
+                        <Link
+                          href={`/products/${product.slug}`}
+                          className="flex items-center space-x-4 p-4 hover:bg-gray-50 transition duration-150">
+                          <img
+                            src={product.images[0]?.image || "/placeholder.png"}
+                            alt={product.name}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                          <div>
+                            <h3 className="font-semibold text-sm">
+                              {product.name}
+                            </h3>
+                            <p className="text-primary font-medium">
+                              {formatRupiah(product.price)}
+                            </p>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )
               )}
             </div>
             <div className="flex items-center space-x-6">
@@ -195,8 +230,16 @@ const Navbar = () => {
               />
               <div className="flex items-center space-x-4">
                 <IconLink href="/wishlists" icon={Heart} label="Wishlist" />
-                <IconLink href="/carts" icon={ShoppingBag} label="Shopping Cart" />
-                <IconLink href="/notifications" icon={Bell} label="Notifications" />
+                <IconLink
+                  href="/carts"
+                  icon={ShoppingBag}
+                  label="Shopping Cart"
+                />
+                <IconLink
+                  href="/notifications"
+                  icon={Bell}
+                  label="Notifications"
+                />
               </div>
             </div>
           </div>
@@ -212,10 +255,16 @@ const Navbar = () => {
             aria-label="Toggle Menu">
             <Menu className="w-6 h-6" />
           </button>
-          <Link href="/" className="text-xl font-bold text-primary" aria-label="Home">
-            BrandLogo
+          <Link
+            href="/"
+            className="text-xl font-bold text-primary"
+            aria-label="Home">
+            Agus Store
           </Link>
-          <Link href="/carts" className="text-gray-600 hover:text-primary transition-colors" aria-label="Shopping Cart">
+          <Link
+            href="/carts"
+            className="text-gray-600 hover:text-primary transition-colors"
+            aria-label="Shopping Cart">
             <ShoppingBag className="w-6 h-6" />
           </Link>
         </div>
@@ -247,12 +296,16 @@ const Navbar = () => {
               <Loader2 className="animate-spin text-primary" />
             </div>
           ) : results.length === 0 && searchTerm.trim() ? (
-            <p className="text-center text-gray-500 my-4">Tidak ada produk yang cocok.</p>
+            <p className="text-center text-gray-500 my-4">
+              Tidak ada produk yang cocok.
+            </p>
           ) : (
             <ul className="mt-4">
               {results.map((product) => (
                 <li key={product.id} className="border-b last:border-b-0">
-                  <Link href={`/products/${product.slug}`} className="flex items-center space-x-4 p-4">
+                  <Link
+                    href={`/products/${product.slug}`}
+                    className="flex items-center space-x-4 p-4">
                     <img
                       src={product.images[0]?.image || "/placeholder-card.svg"}
                       alt={product.name}
@@ -260,7 +313,9 @@ const Navbar = () => {
                     />
                     <div>
                       <h3 className="font-semibold">{product.name}</h3>
-                      <p className="text-primary">{formatRupiah(product.price)}</p>
+                      <p className="text-primary">
+                        {formatRupiah(product.price)}
+                      </p>
                     </div>
                   </Link>
                 </li>
@@ -277,10 +332,15 @@ const Navbar = () => {
         } transition-transform duration-300 ease-in-out md:hidden`}>
         <div className="flex flex-col h-full">
           <div className="p-4 border-b flex justify-between items-center">
-            <Link href="/" className="text-xl font-bold text-primary" aria-label="Home">
-              BrandLogo
+            <Link
+              href="/"
+              className="text-xl font-bold text-primary"
+              aria-label="Home">
+              Agus Store
             </Link>
-            <button onClick={toggleMenu} className="text-gray-600 hover:text-primary transition-colors">
+            <button
+              onClick={toggleMenu}
+              className="text-gray-600 hover:text-primary transition-colors">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -308,7 +368,7 @@ const Navbar = () => {
       {/* Mobile Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t md:hidden z-50">
         <div className="grid grid-cols-5 gap-1 relative p-1">
-          <div 
+          <div
             className={`absolute top-1 bottom-1 w-1/5 bg-primary/10 backdrop-blur-sm 
             rounded-2xl shadow-sm transform transition-all duration-500 ease-out
             ${getSliderPosition(activeTab)}`}
@@ -317,15 +377,15 @@ const Navbar = () => {
             href="/"
             icon={Home}
             label="Beranda"
-            isActive={activeTab === 'home'}
-            onClick={() => setActiveTab('home')}
+            isActive={activeTab === "home"}
+            onClick={() => setActiveTab("home")}
           />
           <BottomNavItem
             icon={Search}
             label="Cari"
-            isActive={activeTab === 'search'}
+            isActive={activeTab === "search"}
             onClick={() => {
-              setActiveTab('search');
+              setActiveTab("search");
               setShowMobileSearch(true);
             }}
           />
@@ -333,22 +393,28 @@ const Navbar = () => {
             href="/wishlists"
             icon={Heart}
             label="Wishlist"
-            isActive={activeTab === 'wishlist'}
-            onClick={() => setActiveTab('wishlist')}
+            isActive={activeTab === "wishlist"}
+            onClick={() => setActiveTab("wishlist")}
           />
           <BottomNavItem
             href="/notifications"
             icon={Bell}
             label="Notifikasi"
-            isActive={activeTab === 'notifications'}
-            onClick={() => setActiveTab('notifications')}
+            isActive={activeTab === "notifications"}
+            onClick={() => setActiveTab("notifications")}
           />
           <BottomNavItem
-            href={isLoggedIn ? (role === "ADMIN" ? "/dashboard" : "/user") : "/login"}
+            href={
+              isLoggedIn
+                ? role === "ADMIN"
+                  ? "/dashboard"
+                  : "/user"
+                : "/login"
+            }
             icon={User}
             label="Profil"
-            isActive={activeTab === 'profile'}
-            onClick={() => setActiveTab('profile')}
+            isActive={activeTab === "profile"}
+            onClick={() => setActiveTab("profile")}
           />
         </div>
       </div>
@@ -389,7 +455,8 @@ const NavMenu = ({
   }, [isCategoryOpen]);
 
   return (
-    <div className={`${mobile ? 'space-y-4 p-4' : 'flex items-center space-x-4'}`}>
+    <div
+      className={`${mobile ? "space-y-4 p-4" : "flex items-center space-x-4"}`}>
       <div className="relative category-menu">
         <button
           onClick={toggleCategoryMenu}
@@ -449,7 +516,9 @@ const NavMenu = ({
           )}
           <button
             onClick={onLogout}
-            className={`${mobile ? 'block w-full text-left' : ''} px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded transition duration-150`}>
+            className={`${
+              mobile ? "block w-full text-left" : ""
+            } px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded transition duration-150`}>
             Logout
           </button>
         </>
@@ -478,33 +547,49 @@ const NavLink = ({ href, onClick, label, mobile }: any) => (
     href={href}
     onClick={onClick}
     className={`${
-      mobile 
-        ? 'block px-4 py-2 text-base' 
-        : 'inline-block px-2 py-1 text-sm'
+      mobile ? "block px-4 py-2 text-base" : "inline-block px-2 py-1 text-sm"
     } text-gray-700 hover:bg-gray-100 hover:text-primary rounded transition duration-150`}>
     {label}
   </Link>
 );
 
-const IconLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string }) => (
-  <Link href={href} className="text-gray-600 hover:text-primary transition-colors" aria-label={label}>
+const IconLink = ({
+  href,
+  icon: Icon,
+  label,
+}: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+}) => (
+  <Link
+    href={href}
+    className="text-gray-600 hover:text-primary transition-colors"
+    aria-label={label}>
     <Icon className="w-6 h-6" />
   </Link>
 );
 
 const BottomNavItem = ({ href, icon: Icon, label, isActive, onClick }: any) => (
   <Link
-    href={href || '#'}
+    href={href || "#"}
     onClick={onClick}
     className={`group flex flex-col items-center py-2 relative z-10 
     transition-all duration-300 rounded-2xl
-    ${isActive ? 'text-primary' : 'text-gray-600'}
-    hover:text-primary`}
-  >
-    <Icon className={`w-6 h-6 transition-all duration-300 ${isActive ? 'scale-110' : 'scale-100'} group-hover:scale-110`} />
-    <span className={`text-xs mt-1 transition-all duration-300 ${isActive ? 'font-medium' : 'font-normal'} group-hover:font-medium`}>{label}</span>
+    ${isActive ? "text-primary" : "text-gray-600"}
+    hover:text-primary`}>
+    <Icon
+      className={`w-6 h-6 transition-all duration-300 ${
+        isActive ? "scale-110" : "scale-100"
+      } group-hover:scale-110`}
+    />
+    <span
+      className={`text-xs mt-1 transition-all duration-300 ${
+        isActive ? "font-medium" : "font-normal"
+      } group-hover:font-medium`}>
+      {label}
+    </span>
   </Link>
 );
 
 export default Navbar;
-

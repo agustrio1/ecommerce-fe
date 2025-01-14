@@ -1,6 +1,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
+import { revalidatePath as nextRevalidatePath } from 'next/cache';
 
 // Mendapatkan token dari cookie
 export async function getToken(): Promise<string | undefined> {
@@ -34,7 +35,6 @@ export async function clearToken() {
   }
 }
 
-
 // Memeriksa apakah token sudah kadaluarsa
 export async function isTokenExpired(token: string): Promise<boolean> {
   try {
@@ -52,3 +52,9 @@ export async function isTokenExpired(token: string): Promise<boolean> {
     return true;
   }
 }
+
+// Revalidate path function
+export async function revalidatePath(path: string) {
+  nextRevalidatePath(path);
+}
+

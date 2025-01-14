@@ -52,7 +52,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               { href: "/dashboard/category", label: "Kategori" },
               { href: "/dashboard/product", label: "Produk" },
               { href: "/dashboard/orders", label: "Pesanan" },
-              { href: "/dashboard/user", label: "Pengguna" },
+              { href: "/dashboard/users", label: "Pengguna" },
+              {href: "/dashboard/notifications", label: " Buat Notifikasi"},
+              {href: "/dashboard/discount", label: "Diskon"},
             ].map((item) => (
               <Link
                 key={item.href}

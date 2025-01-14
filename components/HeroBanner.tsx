@@ -5,11 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Star, ShoppingBag, ArrowRight, ChevronRight } from 'lucide-react';
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
+import LearnMoreModal from "./LearnMoreModal";
 
 function HeroBanner() {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const controls = useAnimation();
+
+  React.useEffect(() => {
+    controls.start({
+      y: [0, -10, 0],
+      transition: { repeat: Infinity, duration: 2 }
+    });
+  }, [controls]);
+
   return (
-    <div className="relative min-h-[600px] md:min-h-[700px] rounded-3xl overflow-hidden mb-12 bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700">
+    <div className="relative min-h-[700px] md:min-h-[800px] rounded-3xl overflow-hidden mb-12 bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700">
       {/* Animated Background */}
       <motion.div
         className="absolute inset-0 opacity-20"
@@ -28,7 +39,7 @@ function HeroBanner() {
       />
 
       {/* Content Container */}
-      <div className="relative h-full max-w-7xl mx-auto px-4 py-12 flex flex-col md:flex-row items-center justify-between">
+      <div className="relative h-full max-w-7xl mx-auto px-4 py-16 flex flex-col md:flex-row items-center justify-between">
         {/* Text Content */}
         <div className="text-white z-10 md:w-1/2 space-y-8 text-center md:text-left">
           <motion.div
@@ -70,7 +81,12 @@ function HeroBanner() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="bg-transparent border-white text-white hover:bg-white/10"
+              onClick={() => setIsModalOpen(true)}
+            >
               Pelajari Lebih Lanjut
               <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
@@ -110,6 +126,7 @@ function HeroBanner() {
               fill
               className="object-cover rounded-2xl shadow-2xl"
               sizes="(max-width: 768px) 100vw, 50vw"
+              priority
             />
             {/* Floating Elements */}
             <motion.div
@@ -138,8 +155,23 @@ function HeroBanner() {
           </div>
         </motion.div>
       </div>
+
+      {/* Floating Call-to-Action */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        animate={controls}
+      >
+        <Link href="/products">
+          <Button size="lg" className="bg-yellow-400 text-blue-700 hover:bg-yellow-300 transition-colors shadow-lg">
+            Lihat Semua Produk
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        </Link>
+      </motion.div>
+      <LearnMoreModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }
 
 export default HeroBanner;
+

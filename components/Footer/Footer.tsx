@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export const Footer = () => {
-  // Dynamically get the year only on the client side
+  
   const year = typeof window !== "undefined" ? new Date().getFullYear() : "2025";
 
   return (
@@ -92,7 +92,7 @@ export const Footer = () => {
 const quickLinks = [
   { href: "/", text: "Beranda", icon: <Home className="h-4 w-4" /> },
   { href: "/products", text: "Produk", icon: <ShoppingBag className="h-4 w-4" /> },
-  { href: "/kontak", text: "Hubungi Kami", icon: <MessageCircle className="h-4 w-4" /> },
+  { href: "/contact", text: "Hubungi Kami", icon: <MessageCircle className="h-4 w-4" /> },
   { href: "/term-conditions", text: "Syarat dan Ketentuan", icon: <FileText className="h-4 w-4" /> },
   { href: "/how-to-order", text: "Cara Belanja", icon: <HelpCircle className="h-4 w-4" /> },
 ];
