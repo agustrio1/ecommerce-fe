@@ -1,16 +1,5 @@
 import * as React from "react";
-import {
-  ShoppingBag,
-  Heart,
-  Bell,
-  ChevronDown,
-  Search,
-  Home,
-  User,
-  X,
-  Loader2,
-  Menu,
-} from "lucide-react";
+import { ShoppingBag, Heart, Bell, ChevronDown, Search, Home, User, X, Loader2, Menu } from 'lucide-react';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { parseJwt } from "@/utils/parseJwt";
@@ -33,6 +22,9 @@ const Navbar = () => {
   const [searchTerm, setSearchTerm] = React.useState<string>("");
   const [results, setResults] = React.useState<any[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [totalPages, setTotalPages] = React.useState(1);
+  const [showResults, setShowResults] = React.useState(false);
 
   useCategories();
 
@@ -69,20 +61,19 @@ const Navbar = () => {
     }
   };
 
-  const fetchProducts = async (term: string) => {
+  const fetchProducts = async (term: string, page: number = 1) => {
     try {
       setIsLoading(true);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/products?search=${term}`
+        `${process.env.NEXT_PUBLIC_API_URL}/products?search=${term}&page=${page}&limit=5`
       );
       if (!res.ok) throw new Error("Failed to fetch products");
 
       const data = await res.json();
-      if (data.length === 0) {
-        setResults([]);
-      } else {
-        setResults(data);
-      }
+      setResults(data.data);
+      setTotalPages(data.meta.totalPages);
+      setCurrentPage(data.meta.page);
+      setShowResults(true);
     } catch (error) {
       console.error("Error fetching products:", error);
       setResults([]);
@@ -110,9 +101,9 @@ const Navbar = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const res = fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/products/${searchTerm}`
-    );
+    if (searchTerm.trim()) {
+      fetchProducts(searchTerm);
+    }
     setShowMobileSearch(false);
   };
 
@@ -147,6 +138,16 @@ const Navbar = () => {
       default:
         return "translate-x-0";
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    fetchProducts(searchTerm, newPage);
+  };
+
+  const handleProductClick = () => {
+    setShowResults(false);
+    setSearchTerm('');
   };
 
   return (
@@ -188,36 +189,63 @@ const Navbar = () => {
                 </Button>
               </form>
               {/* Search Results */}
-              {isLoading ? (
-                <div className="absolute top-full left-0 right-0 bg-white shadow-lg rounded-md p-4 mt-2">
-                  <Loader2 className="animate-spin mx-auto text-primary" />
+              {showResults && (
+                <div className="absolute top-full left-0 right-0 bg-white shadow-lg rounded-md max-h-96 overflow-y-auto z-10 mt-2">
+                  {isLoading ? (
+                    <div className="p-4">
+                      <Loader2 className="animate-spin mx-auto text-primary" />
+                    </div>
+                  ) : results.length > 0 ? (
+                    <>
+                      <ul>
+                        {results.map((product) => (
+                          <li key={product.id} className="border-b last:border-b-0">
+                            <Link
+                              href={`/products/${product.slug}`}
+                              className="flex items-center space-x-4 p-4 hover:bg-gray-50 transition duration-150"
+                              onClick={handleProductClick}
+                            >
+                              <img
+                                src={product.images[0]?.image || "/placeholder.png"}
+                                alt={product.name}
+                                className="w-16 h-16 object-cover rounded"
+                              />
+                              <div>
+                                <h3 className="font-semibold text-sm">
+                                  {product.name}
+                                </h3>
+                                <p className="text-primary font-medium">
+                                  {formatRupiah(product.price)}
+                                </p>
+                              </div>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="flex justify-center p-4">
+                        <Button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="mr-2"
+                        >
+                          Previous
+                        </Button>
+                        <span className="mx-2 self-center">
+                          Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="ml-2"
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-center text-gray-500 p-4">No products found.</p>
+                  )}
                 </div>
-              ) : (
-                results.length > 0 && (
-                  <ul className="absolute top-full left-0 right-0 bg-white shadow-lg rounded-md max-h-96 overflow-y-auto z-10 mt-2">
-                    {results.map((product) => (
-                      <li key={product.id} className="border-b last:border-b-0">
-                        <Link
-                          href={`/products/${product.slug}`}
-                          className="flex items-center space-x-4 p-4 hover:bg-gray-50 transition duration-150">
-                          <img
-                            src={product.images[0]?.image || "/placeholder.png"}
-                            alt={product.name}
-                            className="w-16 h-16 object-cover rounded"
-                          />
-                          <div>
-                            <h3 className="font-semibold text-sm">
-                              {product.name}
-                            </h3>
-                            <p className="text-primary font-medium">
-                              {formatRupiah(product.price)}
-                            </p>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )
               )}
             </div>
             <div className="flex items-center space-x-6">
@@ -273,7 +301,7 @@ const Navbar = () => {
       {/* Mobile Search */}
       {showMobileSearch && (
         <div className="fixed inset-x-0 top-16 z-50 p-4 bg-white shadow-lg md:hidden mobile-search-container">
-          <form onSubmit={(e) => e.preventDefault()} className="relative">
+          <form onSubmit={handleSearch} className="relative mb-4">
             <Input
               type="text"
               placeholder="Cari produk..."
@@ -285,42 +313,71 @@ const Navbar = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <button
               type="button"
-              onClick={() => setShowMobileSearch(false)}
+              onClick={() => {
+                setShowMobileSearch(false);
+                setShowResults(false);
+              }}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              aria-label="Close Search">
+              aria-label="Close Search"
+            >
               <X className="w-5 h-5" />
             </button>
           </form>
-          {isLoading ? (
-            <div className="flex justify-center items-center my-4">
-              <Loader2 className="animate-spin text-primary" />
+          {showResults && (
+            <div className="mt-4">
+              {isLoading ? (
+                <div className="flex justify-center items-center my-4">
+                  <Loader2 className="animate-spin text-primary" />
+                </div>
+              ) : results.length > 0 ? (
+                <>
+                  <ul>
+                    {results.map((product) => (
+                      <li key={product.id} className="border-b last:border-b-0">
+                        <Link
+                          href={`/products/${product.slug}`}
+                          className="flex items-center space-x-4 p-4"
+                          onClick={handleProductClick}
+                        >
+                          <img
+                            src={product.images[0]?.image || "/placeholder-card.svg"}
+                            alt={product.name}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                          <div>
+                            <h3 className="font-semibold">{product.name}</h3>
+                            <p className="text-primary">{formatRupiah(product.price)}</p>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="flex justify-center p-4">
+                    <Button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="mr-2"
+                    >
+                      Previous
+                    </Button>
+                    <span className="mx-2 self-center">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="ml-2"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-center text-gray-500 my-4">
+                  Tidak ada produk yang cocok.
+                </p>
+              )}
             </div>
-          ) : results.length === 0 && searchTerm.trim() ? (
-            <p className="text-center text-gray-500 my-4">
-              Tidak ada produk yang cocok.
-            </p>
-          ) : (
-            <ul className="mt-4">
-              {results.map((product) => (
-                <li key={product.id} className="border-b last:border-b-0">
-                  <Link
-                    href={`/products/${product.slug}`}
-                    className="flex items-center space-x-4 p-4">
-                    <img
-                      src={product.images[0]?.image || "/placeholder-card.svg"}
-                      alt={product.name}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                    <div>
-                      <h3 className="font-semibold">{product.name}</h3>
-                      <p className="text-primary">
-                        {formatRupiah(product.price)}
-                      </p>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       )}
@@ -593,3 +650,4 @@ const BottomNavItem = ({ href, icon: Icon, label, isActive, onClick }: any) => (
 );
 
 export default Navbar;
+

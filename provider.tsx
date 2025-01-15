@@ -17,7 +17,9 @@ type Props = {
     return (
       <>
          {!disableNavbar.includes(pathname.split("/")[1]) && <Navbar />}
+         <main className="pt-16">
         {children}
+        </main>
         {!disableFooter.includes(pathname.split("/")[1]) && <Footer />}
       </>
     );
