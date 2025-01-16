@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { getToken } from '@/utils/token'
-import { useToast } from '@/hooks/use-toast'
-import { Save, Settings, Trash2, Bell, Shield, Eye, EyeOff } from 'lucide-react'
-import { motion, AnimatePresence } from "framer-motion"
+import * as React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { getToken } from "@/utils/token";
+import { useToast } from "@/hooks/use-toast";
+import { Save, Settings, Trash2, Bell, Shield, Eye, EyeOff } from 'lucide-react';
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -18,103 +18,186 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { Switch } from "@/components/ui/switch"
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 
 export default function UserSetting() {
-  const [isLoading, setIsLoading] = React.useState(true)
-  const [data, setData] = React.useState<any>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
-  const [isPasswordVisible, setIsPasswordVisible] = React.useState(false)
-  const { toast } = useToast()
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [data, setData] = React.useState<any>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
+  const [isEmailNotificationEnabled, setIsEmailNotificationEnabled] =
+    React.useState(true);
+  const { toast } = useToast();
 
   React.useEffect(() => {
-    fetchUserData()
-  }, [])
+    fetchUserData();
+  }, []);
 
   const fetchUserData = async () => {
     try {
-      const token = await getToken()
+      const token = await getToken();
       if (!token) {
         toast({
           title: "Error",
           description: "Token tidak ditemukan. Harap login ulang.",
           variant: "destructive",
-        })
-        return
+        });
+        return;
       }
 
-      const userPayload = JSON.parse(atob(token.split(".")[1]))
-      const userId = userPayload?.id
+      const userPayload = JSON.parse(atob(token.split(".")[1]));
+      const userId = userPayload?.id;
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch user data')
+        throw new Error("Failed to fetch user data");
       }
 
-      const userData = await response.json()
-      setData(userData)
-      setIsLoading(false)
+      const { user } = await response.json(); // Destructure user dari response
+      setData(user);
+      // Set nilai notifikasi email dari data user
+      setIsEmailNotificationEnabled(user.isEmailNotificationEnabled ?? true);
+      setIsLoading(false);
     } catch (error) {
       toast({
         title: "Error",
         description: "Gagal mengambil data pengguna.",
         variant: "destructive",
-      })
-      setIsLoading(false)
+      });
+      setIsLoading(false);
     }
-  }
+  };
+
+  React.useEffect(() => {
+    if (data) {
+      setIsEmailNotificationEnabled(data.isEmailNotificationEnabled);
+    }
+  }, [data]);
+
+  const handleEmailNotificationToggle = async () => {
+    try {
+      console.log("Memulai toggle email notification...");
+
+      const token = await getToken();
+      if (!token) {
+        console.error("Token tidak ditemukan!");
+        toast({
+          title: "Error",
+          description: "Token tidak ditemukan. Harap login ulang.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const userPayload = JSON.parse(atob(token.split(".")[1]));
+      const userId = userPayload?.id;
+
+      const newNotificationState = !isEmailNotificationEnabled;
+
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/users/notification/${userId}`;
+
+      const response = await fetch(apiUrl, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          isEnabled: newNotificationState,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update email notification setting");
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIsEmailNotificationEnabled(newNotificationState);
+        setData({ ...data, isEmailNotificationEnabled: newNotificationState });
+
+        toast({
+          title: "Sukses",
+          description: result.message || `Notifikasi email telah ${newNotificationState ? "diaktifkan" : "dinonaktifkan"}.`,
+          variant: "default",
+        });
+      } else {
+        throw new Error(result.error || "Failed to update notification settings");
+      }
+    } catch (error: any) {
+      console.error("Terjadi error saat toggle notifikasi:", error);
+
+      // Kembalikan switch ke posisi sebelumnya
+      setIsEmailNotificationEnabled(!isEmailNotificationEnabled);
+
+      toast({
+        title: "Error",
+        description: error.message || "Gagal memperbarui pengaturan notifikasi email.",
+        variant: "destructive",
+      });
+    }
+  };
+
 
   const handleDeletingUser = async () => {
     try {
-      const token = await getToken()
+      const token = await getToken();
       if (!token) {
         toast({
           title: "Error",
           description: "Token tidak ditemukan. Harap login ulang.",
           variant: "destructive",
-        })
-        return
+        });
+        return;
       }
 
-      const userPayload = JSON.parse(atob(token.split(".")[1]))
-      const userId = userPayload?.id
+      const userPayload = JSON.parse(atob(token.split(".")[1]));
+      const userId = userPayload?.id;
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to delete user')
+        throw new Error("Failed to delete user");
       }
 
       toast({
         title: "Sukses",
         description: "Akun Anda telah berhasil dihapus.",
         variant: "default",
-      })
+      });
 
       // Redirect to home page or login page after successful deletion
-      window.location.href = "/"
+      window.location.href = "/";
     } catch (error) {
       toast({
         title: "Error",
         description: "Gagal menghapus akun. Silakan coba lagi.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   if (isLoading) {
-    return <SettingsSkeleton />
+    return <SettingsSkeleton />;
   }
 
   return (
@@ -144,8 +227,7 @@ export default function UserSetting() {
                 />
                 <button
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
-                  onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                >
+                  onClick={() => setIsPasswordVisible(!isPasswordVisible)}>
                   {isPasswordVisible ? (
                     <EyeOff className="h-4 w-4 text-gray-400" />
                   ) : (
@@ -165,13 +247,18 @@ export default function UserSetting() {
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="email-notifications">Notifikasi Email</Label>
-              <Switch id="email-notifications" />
+              <Label htmlFor="notification">Notifikasi Email</Label>
+              <Switch
+                id="notification"
+                checked={isEmailNotificationEnabled}
+                onCheckedChange={handleEmailNotificationToggle}
+                disabled={isLoading} // Tambahkan disabled state saat loading
+              />
             </div>
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <Label htmlFor="push-notifications">Notifikasi Push</Label>
               <Switch id="push-notifications" />
-            </div>
+            </div> */}
           </div>
         </CardContent>
       </Card>
@@ -182,9 +269,12 @@ export default function UserSetting() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            Menghapus akun Anda akan menghapus semua data Anda secara permanen. Tindakan ini tidak dapat dibatalkan.
+            Menghapus akun Anda akan menghapus semua data Anda secara permanen.
+            Tindakan ini tidak dapat dibatalkan.
           </p>
-          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <Dialog
+            open={isDeleteDialogOpen}
+            onOpenChange={setIsDeleteDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="destructive">
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -195,11 +285,14 @@ export default function UserSetting() {
               <DialogHeader>
                 <DialogTitle>Anda yakin ingin menghapus akun?</DialogTitle>
                 <DialogDescription>
-                  Tindakan ini tidak dapat dibatalkan. Semua data Anda akan dihapus secara permanen dari sistem kami.
+                  Tindakan ini tidak dapat dibatalkan. Semua data Anda akan
+                  dihapus secara permanen dari sistem kami.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteDialogOpen(false)}>
                   Batal
                 </Button>
                 <Button variant="destructive" onClick={handleDeletingUser}>
@@ -211,7 +304,7 @@ export default function UserSetting() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 function SettingsSkeleton() {
@@ -232,6 +325,6 @@ function SettingsSkeleton() {
         </Card>
       ))}
     </div>
-  )
+  );
 }
 

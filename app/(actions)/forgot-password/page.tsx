@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { AuthLayout } from "@/components/auth-layout";
+import { motion } from "framer-motion";
 
 type ForgotPasswordForm = {
   email: string;
@@ -43,12 +45,8 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="max-w-md w-full p-4 border rounded-lg shadow-md">
-        <h2 className="text-2xl text-center font-semibold mb-6">
-          Lupa Kata Sandi
-        </h2>
-        <form onSubmit={handleSubmit(onSubmit)}>
+    <AuthLayout title="Lupa Kata Sandi">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="flex flex-col gap-1">
             <div className="mb-4">
               <Label htmlFor="email">Email</Label>
@@ -69,22 +67,26 @@ const ForgotPasswordPage = () => {
             </div>
           </div>
           <div className="flex justify-center">
-            <Button type="submit" className="w-full flex items-center justify-center" disabled={loading}>
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={loading}>
               {loading ? <Loader2 className="animate-spin mr-2" /> : null} 
               {loading ? 'Memproses...' : 'Kirim'}
             </Button>
           </div>
         </form>
-        <p className="text-center mt-4">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-center  mt-4"
+        >
           Kembali ke{" "}
           <Link
             href="/login"
             className="text-blue-500 hover:text-blue-700 font-medium">
             Login
           </Link>
-        </p>
-      </div>
-    </div>
+          </motion.p>
+      </AuthLayout>
   );
 };
 

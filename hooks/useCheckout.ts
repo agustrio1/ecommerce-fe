@@ -83,28 +83,24 @@ export const useCheckout = () => {
         setDiscountAmount(0);
         return;
       }
-  
+    
       try {
         setValidatingDiscount(true);
-        const token = await getToken();
+        const subtotal = calculateSubtotal();
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/discounts/`,
+          `${process.env.NEXT_PUBLIC_API_URL}/discounts/code/${discountCode}?totalOrder=${subtotal}`,
           {
-            method: "POST",
+            method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({
-              code: discountCode,
-              amount: calculateSubtotal(),
-            }),
           }
         );
-  
+    
         if (!response.ok) throw new Error("Kode diskon tidak valid.");
         const data = await response.json();
-        setDiscountAmount(data.discountAmount);
+    
+        setDiscountAmount(data.value || 0);
         toast({
           title: "Sukses",
           description: "Kode diskon berhasil diterapkan.",
@@ -122,7 +118,6 @@ export const useCheckout = () => {
         setValidatingDiscount(false);
       }
     };
-  
     const calculateSubtotal = () => {
       return cartItems.reduce(
         (total, item) => total + item.product.price * item.quantity,
@@ -178,7 +173,7 @@ export const useCheckout = () => {
           discountCode: discountCode || null,
         };
   
-        console.log("Order Data yang dikirim:", orderData);
+        // console.log("Order Data yang dikirim:", orderData);
   
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/orders/`,
@@ -211,7 +206,7 @@ export const useCheckout = () => {
         }
   
         const data = await response.json();
-        console.log("Data respons sukses:", data);
+        // console.log("Data respons sukses:", data);
   
         setOrderId(data.data.id);
         setCurrentStep(3);
@@ -220,7 +215,7 @@ export const useCheckout = () => {
           description: "Pesanan berhasil dibuat.",
         });
       } catch (error) {
-        console.error("Error saat membuat pesanan:", error);
+        // console.error("Error saat membuat pesanan:", error);
         if (error instanceof Error) {
           toast({
             title: "Error",

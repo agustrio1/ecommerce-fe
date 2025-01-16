@@ -3,11 +3,19 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react";
+import {
+  EyeIcon,
+  EyeOffIcon,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AuthLayout } from "@/components/auth-layout";
+import { motion } from "framer-motion";
 
 type RegisterForm = {
   name: string;
@@ -19,12 +27,14 @@ const RegisterPage = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterForm>();
   const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
   const router = useRouter();
+  const password = watch("password");
 
   const onSubmit = async (data: RegisterForm) => {
     setLoading(true);
@@ -47,86 +57,124 @@ const RegisterPage = () => {
     }
   };
 
+  const validatePassword = (password: string) => {
+    const criteria = [
+      { regex: /.{8,}/, label: "Minimal 8 karakter" },
+      { regex: /[A-Z]/, label: "Huruf besar" },
+      { regex: /[a-z]/, label: "Huruf kecil" },
+      { regex: /[0-9]/, label: "Angka" },
+      { regex: /[^A-Za-z0-9]/, label: "Karakter khusus" },
+    ];
+
+    return criteria.map(({ regex, label }) => ({
+      label,
+      valid: regex.test(password),
+    }));
+  };
+
+  const passwordCriteria = validatePassword(password || "");
+
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="max-w-md w-full p-4 border rounded-lg shadow-md">
-        <h2 className="text-2xl text-center font-semibold mb-6">Daftar Akun</h2>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="mb-4">
-            <Label htmlFor="name">Nama</Label>
+    <AuthLayout title="Buat Akun">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <Label htmlFor="name">Nama</Label>
+          <Input
+            id="name"
+            type="text"
+            {...register("name", { required: "Nama harus diisi" })}
+          />
+          {errors.name && (
+            <span className="text-red-500 text-sm">{errors.name.message}</span>
+          )}
+        </div>
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            {...register("email", {
+              required: "Email harus diisi",
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Format email tidak valid",
+              },
+            })}
+          />
+          {errors.email && (
+            <span className="text-red-500 text-sm">{errors.email.message}</span>
+          )}
+        </div>
+        <div>
+          <Label htmlFor="password">Kata Sandi</Label>
+          <div className="relative">
             <Input
-              id="name"
-              type="text"
-              {...register("name", { required: "Nama harus diisi" })}
-            />
-            {errors.name && (
-              <span className="text-red-500">{errors.name.message}</span>
-            )}
-          </div>
-          <div className="mb-4">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              {...register("email", {
-                required: "Email harus diisi",
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "Format email tidak valid",
-                },
+              id="password"
+              type={showPassword ? "text" : "password"}
+              {...register("password", {
+                required: "Kata sandi harus diisi",
+                validate: (value) =>
+                  validatePassword(value).every((criteria) => criteria.valid) ||
+                  "Kata sandi harus memenuhi semua kriteria",
               })}
             />
-            {errors.email && (
-              <span className="text-red-500">{errors.email.message}</span>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 top-2 text-gray-500 hover:text-gray-700">
+              {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
+            </button>
           </div>
-          <div className="mb-4">
-            <Label htmlFor="password">Kata Sandi</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                {...register("password", {
-                  required: "Kata sandi harus diisi",
-                  minLength: {
-                    value: 8,
-                    message:
-                      "Kata sandi minimal 8 karakter, terdiri dari huruf, angka, dan simbol",
-                  },
-                })}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-2">
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-            {errors.password && (
-              <span className="text-red-500">{errors.password.message}</span>
-            )}
+          {errors.password && (
+            <span className="text-red-500 text-sm">
+              {errors.password.message}
+            </span>
+          )}
+          <div className="mt-2 space-y-1">
+            {passwordCriteria.map((criteria, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                {criteria.valid ? (
+                  <CheckCircle2 className="text-green-500" size={16} />
+                ) : (
+                  <XCircle className="text-red-500" size={16} />
+                )}
+                <span
+                  className={`text-sm ${
+                    criteria.valid ? "text-green-500" : "text-red-500"
+                  }`}>
+                  {criteria.label}
+                </span>
+              </div>
+            ))}
           </div>
-
-          <div className="flex justify-center">
-            <Button
-              type="submit"
-              className="w-full flex items-center justify-center"
-              disabled={loading}>
-              {loading ? <Loader2 className="animate-spin mr-2" /> : null}
-              {loading ? "Memproses..." : "Daftar"}
-            </Button>
-          </div>
-        </form>
-        <div className="text-center mt-4">
-          <p>
-            Sudah punya akun?{" "}
-            <Link href="/login" className="text-blue-500">
-              Masuk
-            </Link>
-          </p>
         </div>
+
+        <Button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700"
+          disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Memproses...
+            </>
+          ) : (
+            "Daftar"
+          )}
+        </Button>
+      </form>
+      <div className="text-center mt-4">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}>
+          Sudah punya akun?{" "}
+          <Link href="/login" className="text-blue-500 hover:underline">
+            Masuk
+          </Link>
+        </motion.p>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 
