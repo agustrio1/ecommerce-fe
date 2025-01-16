@@ -55,6 +55,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               { href: "/dashboard/users", label: "Pengguna" },
               {href: "/dashboard/notifications", label: " Buat Notifikasi"},
               {href: "/dashboard/discount", label: "Diskon"},
+              {href: "/dashboard/shippings", label: "Pengiriman"},
             ].map((item) => (
               <Link
                 key={item.href}

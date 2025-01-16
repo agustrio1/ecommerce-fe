@@ -1,0 +1,1 @@
+export const convertKgtoGram = (kg: number) => kg * 1000
