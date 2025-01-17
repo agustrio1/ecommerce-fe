@@ -91,7 +91,7 @@ export default function Page() {
       const formData = new FormData();
       formData.append("name", categoryName);
       if (selectedImage) {
-        formData.append("image", selectedImage);
+        formData.append("images", selectedImage);
       }
 
       const res = await fetch("/api/categories", {
@@ -128,7 +128,7 @@ export default function Page() {
       const formData = new FormData();
       formData.append("name", categoryName);
       if (selectedImage) {
-        formData.append("image", selectedImage);
+        formData.append("images", selectedImage);
       }
       formData.append("id", selectedCategory.id);
 

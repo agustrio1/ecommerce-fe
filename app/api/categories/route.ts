@@ -31,12 +31,13 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
       },
+      cache: 'no-store' 
     });
 
     if (!res.ok) {
       const errorData = await res.json();
       return NextResponse.json(
-        { error: errorData.error || "Failed to fetch category" },
+        { error: errorData.error || "Gagal mengambil kategori" },
         { status: res.status }
       );
     }
@@ -44,8 +45,9 @@ export async function GET(request: NextRequest) {
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error) {
+    console.error("Error fetching categories:", error);
     return NextResponse.json(
-      { error: "An error occurred while fetching the category" },
+      { error: "Terjadi kesalahan saat mengambil kategori" },
       { status: 500 }
     );
   }
@@ -54,20 +56,29 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
+    const name = formData.get('name');
+    const image = formData.get('image');
+
+    // Create new FormData with correct field name for image
+    const newFormData = new FormData();
+    newFormData.append('name', name as string);
+    if (image) {
+      newFormData.append('images', image as File); // Changed to 'images' to match backend
+    }
     
     const res = await fetchWithAuth(
       `${process.env.NEXT_PUBLIC_API_URL}/categories`,
       {
         method: "POST",
         headers: {},
-        body: formData,
+        body: newFormData,
       }
     );
 
     if (!res.ok) {
       const errorData = await res.json();
       return NextResponse.json(
-        { error: errorData.error || "Failed to create category" },
+        { error: errorData.error || "Gagal membuat kategori" },
         { status: res.status }
       );
     }
@@ -75,8 +86,9 @@ export async function POST(request: NextRequest) {
     const data = await res.json();
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
+    console.error("Error creating category:", error);
     return NextResponse.json(
-      { error: "An error occurred while creating the category" },
+      { error: "Terjadi kesalahan saat membuat kategori" },
       { status: 500 }
     );
   }
@@ -86,12 +98,20 @@ export async function PUT(request: NextRequest) {
   try {
     const formData = await request.formData();
     const id = formData.get("id");
+    const name = formData.get("name");
+    const image = formData.get("image");
 
     if (!id) {
       return NextResponse.json(
-        { error: "Category ID is required" },
+        { error: "ID kategori diperlukan" },
         { status: 400 }
       );
+    }
+
+    const newFormData = new FormData();
+    newFormData.append('name', name as string);
+    if (image) {
+      newFormData.append('images', image as File);
     }
 
     const res = await fetchWithAuth(
@@ -99,14 +119,14 @@ export async function PUT(request: NextRequest) {
       {
         method: "PUT",
         headers: {},
-        body: formData,
+        body: newFormData,
       }
     );
 
     if (!res.ok) {
       const errorData = await res.json();
       return NextResponse.json(
-        { error: errorData.error || "Failed to update category" },
+        { error: errorData.error || "Gagal memperbarui kategori" },
         { status: res.status }
       );
     }
@@ -114,8 +134,9 @@ export async function PUT(request: NextRequest) {
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error) {
+    console.error("Error updating category:", error);
     return NextResponse.json(
-      { error: "An error occurred while updating the category" },
+      { error: "Terjadi kesalahan saat memperbarui kategori" },
       { status: 500 }
     );
   }
@@ -127,7 +148,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!id) {
       return NextResponse.json(
-        { error: "Category ID is required" },
+        { error: "ID kategori diperlukan" },
         { status: 400 }
       );
     }
@@ -145,20 +166,20 @@ export async function DELETE(request: NextRequest) {
     if (!res.ok) {
       const errorData = await res.json();
       return NextResponse.json(
-        { error: errorData.error || "Failed to delete category" },
+        { error: errorData.error || "Gagal menghapus kategori" },
         { status: res.status }
       );
     }
 
     return NextResponse.json(
-      { message: "Category successfully deleted" },
+      { message: "Kategori berhasil dihapus" },
       { status: 200 }
     );
   } catch (error) {
+    console.error("Error deleting category:", error);
     return NextResponse.json(
-      { error: "An error occurred while deleting the category" },
+      { error: "Terjadi kesalahan saat menghapus kategori" },
       { status: 500 }
     );
   }
 }
-
