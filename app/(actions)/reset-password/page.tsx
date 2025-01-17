@@ -1,8 +1,8 @@
 'use client'
 
 import * as React from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { EyeIcon, EyeOffIcon, Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { useForm } from "react-hook-form"
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthLayout } from "@/components/auth-layout"
+import Link from "next/link"
 
 type ResetPasswordForm = {
   email: string
@@ -17,19 +18,27 @@ type ResetPasswordForm = {
 }
 
 const ResetPasswordPage = () => {
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
+  const router = useRouter();
+  
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<ResetPasswordForm>()
-  const [showPassword, setShowPassword] = React.useState(false)
-  const [loading, setLoading] = React.useState(false)
-  const searchParams = useSearchParams()
-  const token = searchParams.get("token")
-  const router = useRouter()
-
-  const password = watch("newPassword")
+  } = useForm<ResetPasswordForm>();
+  
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    if (token) {
+      setToken(token);
+    }
+  }, []);
+  
+  const password = watch("newPassword");
 
   const validatePassword = (password: string) => {
     const criteria = [
@@ -38,26 +47,26 @@ const ResetPasswordPage = () => {
       { regex: /[a-z]/, label: "Huruf kecil" },
       { regex: /[0-9]/, label: "Angka" },
       { regex: /[^A-Za-z0-9]/, label: "Karakter khusus" },
-    ]
+    ];
 
     return criteria.map(({ regex, label }) => ({
       label,
       valid: regex.test(password),
-    }))
-  }
+    }));
+  };
 
-  const passwordCriteria = validatePassword(password || "")
+  const passwordCriteria = validatePassword(password || "");
 
   const onSubmit = async (data: ResetPasswordForm) => {
-    setLoading(true)
+    setLoading(true);
 
     if (!token) {
-      alert("Token tidak ditemukan. Pastikan Anda mengakses link reset dengan benar.")
-      setLoading(false)
-      return
+      alert("Token tidak ditemukan. Pastikan Anda mengakses link reset dengan benar.");
+      setLoading(false);
+      return;
     }
 
-    const payload = { ...data, token }
+    const payload = { ...data, token };
 
     try {
       const res = await fetch("/api/auth/reset-password", {
@@ -66,23 +75,23 @@ const ResetPasswordPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      })
+      });
 
-      const responseData = await res.json()
+      const responseData = await res.json();
 
       if (res.ok) {
-        router.push("/login")
+        router.push("/login");
       } else {
-        console.error("Reset password error:", responseData.error)
-        alert(responseData.error || "Gagal reset password")
+        console.error("Reset password error:", responseData.error);
+        alert(responseData.error || "Gagal reset password");
       }
     } catch (error) {
-      console.error("Reset password error:", error)
-      alert("Terjadi kesalahan saat menghubungi server")
+      console.error("Reset password error:", error);
+      alert("Terjadi kesalahan saat menghubungi server");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <AuthLayout title="Reset Kata Sandi">
@@ -181,8 +190,7 @@ const ResetPasswordPage = () => {
         </motion.p>
       </div>
     </AuthLayout>
-  )
-}
+  );
+};
 
-export default ResetPasswordPage
-
+export default ResetPasswordPage;

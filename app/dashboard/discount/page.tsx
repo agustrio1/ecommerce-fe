@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: 'Kelola diskon yang tersedia di Agus Store.',
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminDiscountPage() {
   try {
     const discounts = await fetchDiscounts();
