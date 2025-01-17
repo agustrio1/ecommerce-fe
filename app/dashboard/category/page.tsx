@@ -54,7 +54,12 @@ export default function Page() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("/api/categories");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       const data = await res.json();
       setCategories(data);
     } catch (error) {
@@ -94,7 +99,7 @@ export default function Page() {
         formData.append("images", selectedImage);
       }
 
-      const res = await fetch("/api/categories", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
