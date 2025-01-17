@@ -31,13 +31,12 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
       },
-      cache: 'no-store' 
     });
 
     if (!res.ok) {
       const errorData = await res.json();
       return NextResponse.json(
-        { error: errorData.error || "Gagal mengambil kategori" },
+        { error: errorData.error || "Failed to fetch category" },
         { status: res.status }
       );
     }
@@ -45,9 +44,8 @@ export async function GET(request: NextRequest) {
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error fetching categories:", error);
     return NextResponse.json(
-      { error: "Terjadi kesalahan saat mengambil kategori" },
+      { error: "An error occurred while fetching the category" },
       { status: 500 }
     );
   }
@@ -56,29 +54,20 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const name = formData.get('name');
-    const image = formData.get('image');
-
-    // Create new FormData with correct field name for image
-    const newFormData = new FormData();
-    newFormData.append('name', name as string);
-    if (image) {
-      newFormData.append('images', image as File); // Changed to 'images' to match backend
-    }
     
     const res = await fetchWithAuth(
       `${process.env.NEXT_PUBLIC_API_URL}/categories`,
       {
         method: "POST",
         headers: {},
-        body: newFormData,
+        body: formData,
       }
     );
 
     if (!res.ok) {
       const errorData = await res.json();
       return NextResponse.json(
-        { error: errorData.error || "Gagal membuat kategori" },
+        { error: errorData.error || "Failed to create category" },
         { status: res.status }
       );
     }
@@ -86,9 +75,8 @@ export async function POST(request: NextRequest) {
     const data = await res.json();
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    console.error("Error creating category:", error);
     return NextResponse.json(
-      { error: "Terjadi kesalahan saat membuat kategori" },
+      { error: "An error occurred while creating the category" },
       { status: 500 }
     );
   }
