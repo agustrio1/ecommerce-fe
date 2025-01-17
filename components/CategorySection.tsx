@@ -78,7 +78,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({ categories }) => {
                   className="block group">
                   <article className="relative aspect-square rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
                     <Image
-                      src={`${process.env.NEXT_PUBLIC_ASSET}/${category.image} || ""`}
+                      src={category.image || "/placeholder-card.svg"} 
                       alt={category.name}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-110"

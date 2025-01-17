@@ -42,6 +42,17 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
+    
+    if (Array.isArray(data)) {
+      data.forEach(category => {
+        if (category.image) {
+          category.image = `${process.env.NEXT_PUBLIC_API_URL}/categories/${category.image}`;
+        }
+      });
+    } else if (data.image) {
+      data.image = `${process.env.NEXT_PUBLIC_API_URL}/categories/${data.image}`;
+    }
+
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
@@ -50,6 +61,8 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+
 
 export async function POST(request: NextRequest) {
   try {
