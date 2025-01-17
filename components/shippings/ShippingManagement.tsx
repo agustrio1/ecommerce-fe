@@ -3,6 +3,7 @@
 import * as React from "react";
 import { CarTaxiFrontIcon, SearchIcon, TruckIcon, PackageIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -20,14 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/shippings/StatusBadge";
 import { ShippingDetailsDialog } from "@/components/shippings/ShippingDetailsDialog";
 import { getToken } from "@/utils/token";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShipmentStatus, Shipping } from "@/types/shipping.type";
 import { formatRupiah } from "@/utils/currency";
-import {convertKgtoGram} from "@/utils/convert";
+import { convertKgtoGram } from "@/utils/convert";
 
 export const ShippingManagement = () => {
   const [data, setData] = React.useState<Shipping[]>([]);
@@ -69,9 +69,13 @@ export const ShippingManagement = () => {
     fetchData(newPage);
   };
 
-  const handleUpdateShipping = async (id: string, status: ShipmentStatus) => {
+  const handleUpdateShipping = async (id: string, updateData: Partial<Shipping> | ShipmentStatus) => {
     try {
       const token = await getToken();
+      const payload = typeof updateData === 'string' 
+        ? { status: updateData } 
+        : updateData;
+      
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/shippings/${id}`,
         {
@@ -80,18 +84,19 @@ export const ShippingManagement = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ status }),
+          body: JSON.stringify(payload),
         }
       );
-      if (!response.ok) throw new Error("Failed to update shipping status");
+      if (!response.ok) throw new Error("Failed to update shipping");
       const updatedData = await response.json();
       setData((prevData) =>
         prevData.map((shipment) =>
-          shipment.id === id ? { ...shipment, status: updatedData.status } : shipment
+          shipment.id === id ? { ...shipment, ...updatedData } : shipment
         )
       );
+      setIsDialogOpen(false);
     } catch (error: any) {
-      setError(error.message || "An error occurred while updating status");
+      setError(error.message || "An error occurred while updating shipping");
     }
   };
 
@@ -223,12 +228,7 @@ export const ShippingManagement = () => {
                         <EyeIcon className="h-4 w-4" />
                       </Button>
                       <Select
-                        onValueChange={(value) => {
-                          handleUpdateShipping(
-                            shipping.id,
-                            value as ShipmentStatus
-                          );
-                        }}
+                        onValueChange={(value) => handleUpdateShipping(shipping.id, value as ShipmentStatus)}
                       >
                         <SelectTrigger className="w-[140px]">
                           <SelectValue placeholder="Update Status" />
@@ -275,8 +275,8 @@ export const ShippingManagement = () => {
         shipping={selectedShipping}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
+        onUpdate={handleUpdateShipping}
       />
     </div>
   );
 };
-
