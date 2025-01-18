@@ -74,44 +74,63 @@ export default function ProductPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</TableHead>
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gambar</TableHead>
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Berat</TableHead>
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</TableHead>
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</TableHead>
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</TableHead>
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Nama
+              </TableHead>
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Gambar
+              </TableHead>
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Berat
+              </TableHead>
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Harga
+              </TableHead>
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Stok
+              </TableHead>
+              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Aksi
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products && products.length > 0 ? (
+            {Array.isArray(products) && products.length > 0 ? (
               products.map((product, index) => (
                 <TableRow
                   key={product.id}
-                  className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition-colors duration-200`}
-                >
+                  className={`${
+                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                  } hover:bg-gray-100 transition-colors duration-200`}>
                   <TableCell className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap">
                     {product.name.length > 20
                       ? `${product.name.slice(0, 20)}...`
                       : product.name}
                   </TableCell>
                   <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
-                    {product.images && product.images.length > 0 && (
-                      <img
-                        src={product.images[0].image}
-                        alt={product.name}
-                        className="h-16 w-16 object-cover rounded-md shadow-sm"
-                      />
-                    )}
+                    {Array.isArray(product.images) &&
+                      product.images.length > 0 && (
+                        <img
+                          src={product.images[0].image}
+                          alt={product.name}
+                          className="h-16 w-16 object-cover rounded-md shadow-sm"
+                        />
+                      )}
                   </TableCell>
-                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">{product.weight} kg</TableCell>
-                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">Rp {product.price.toLocaleString()}</TableCell>
-                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">{product.stock}</TableCell>
+                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
+                    {product.weight} kg
+                  </TableCell>
+                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
+                    Rp {product.price.toLocaleString()}
+                  </TableCell>
+                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
+                    {product.stock}
+                  </TableCell>
                   <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
                     <div className="flex space-x-2">
                       <Button
                         onClick={() => openEditModal(product)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-xs"
-                      >
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-xs">
                         Edit
                       </Button>
                       <Button
@@ -120,8 +139,7 @@ export default function ProductPage() {
                           setDeleteProductId(product.id as string);
                           setIsDeleteModalOpen(true);
                         }}
-                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-xs"
-                      >
+                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-xs">
                         Hapus
                       </Button>
                     </div>
@@ -130,7 +148,9 @@ export default function ProductPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-4 text-gray-500">
+                <TableCell
+                  colSpan={6}
+                  className="text-center py-4 text-gray-500">
                   Tidak ada produk
                 </TableCell>
               </TableRow>
@@ -218,17 +238,47 @@ export default function ProductPage() {
 
             <div>
               <Label>Kategori</Label>
-              <select
-                value={formData.categoryId}
-                onChange={(e) => updateFormField("categoryId", e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
-                <option value="">Pilih Kategori</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
+              <div className="relative">
+                <label
+                  htmlFor="category"
+                  className="block text-sm font-medium text-gray-700 mb-1">
+                  Pilih Kategori
+                </label>
+                <select
+                  id="category"
+                  value={formData.categoryId}
+                  onChange={(e) =>
+                    updateFormField("categoryId", e.target.value)
+                  }
+                  className="appearance-none block w-full bg-white border border-gray-300 rounded-md py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-700">
+                  <option value="" disabled>
+                    Pilih Kategori
                   </option>
-                ))}
-              </select>
+                  {Array.isArray(categories) &&
+                    categories.map((category) => (
+                      <option
+                        key={category.id}
+                        value={category.id}
+                        className="text-gray-700">
+                        {category.name}
+                      </option>
+                    ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 3a1 1 0 01.894.553l6 12A1 1 0 0116 17H4a1 1 0 01-.894-1.447l6-12A1 1 0 0110 3zm0 4.292L7.707 9.585a1 1 0 11-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 11-1.414 1.414L10 7.292z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             <div>
@@ -297,4 +347,3 @@ export default function ProductPage() {
     </div>
   );
 }
-
