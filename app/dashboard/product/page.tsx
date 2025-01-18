@@ -22,7 +22,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useProductManagement } from "@/hooks/use-product-management";
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from "lucide-react";
 
 export default function ProductPage() {
   const {
@@ -160,7 +160,7 @@ export default function ProductPage() {
 
       {/* Add/Edit Product Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>
               {isEditMode ? "Edit Produk" : "Tambah Produk"}
@@ -170,75 +170,66 @@ export default function ProductPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Nama
-              </Label>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nama</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => updateFormField("name", e.target.value)}
-                className="col-span-3"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="weight" className="text-right">
-                Berat (kg)
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="weight">Berat (kg)</Label>
               <Input
                 id="weight"
                 type="number"
                 value={formData.weight}
-                onChange={(e) => updateFormField("weight", Number(e.target.value))}
-                className="col-span-3"
+                onChange={(e) =>
+                  updateFormField("weight", Number(e.target.value))
+                }
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="price" className="text-right">
-                Harga (Rp)
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="price">Harga (Rp)</Label>
               <Input
                 id="price"
                 type="number"
                 value={formData.price}
-                onChange={(e) => updateFormField("price", Number(e.target.value))}
-                className="col-span-3"
+                onChange={(e) =>
+                  updateFormField("price", Number(e.target.value))
+                }
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="stock" className="text-right">
-                Stok
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="stock">Stok</Label>
               <Input
                 id="stock"
                 type="number"
                 value={formData.stock}
-                onChange={(e) => updateFormField("stock", Number(e.target.value))}
-                className="col-span-3"
+                onChange={(e) =>
+                  updateFormField("stock", Number(e.target.value))
+                }
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Deskripsi
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="description">Deskripsi</Label>
               <Input
                 id="description"
                 value={formData.description}
                 onChange={(e) => updateFormField("description", e.target.value)}
-                className="col-span-3"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
-                Kategori
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="category">Kategori</Label>
               <select
                 id="category"
                 value={formData.categoryId}
                 onChange={(e) => updateFormField("categoryId", e.target.value)}
-                className="col-span-3 w-full bg-background border border-input rounded-md px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              >
+                className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <option value="" disabled>
+                  Pilih Kategori
+                </option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -246,46 +237,46 @@ export default function ProductPage() {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="tags" className="text-right">
-                Tags
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="tags">Tags</Label>
               <Input
                 id="tags"
                 value={formData.tags.join(",")}
-                onChange={(e) => updateFormField("tags", e.target.value.split(","))}
+                onChange={(e) =>
+                  updateFormField("tags", e.target.value.split(","))
+                }
                 placeholder="Tags dipisahkan koma"
-                className="col-span-3"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Gambar</Label>
+            <div className="col-span-2 space-y-2">
+              <Label>Gambar</Label>
               <div
                 {...getRootProps()}
-                className="col-span-3 border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-gray-400 transition-colors"
-              >
+                className="border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-gray-400 transition-colors">
                 <input {...getInputProps()} />
                 <p className="text-center text-sm text-gray-600">
-                  Seret & lepas beberapa file di sini, atau klik untuk memilih file (maksimal 5)
+                  Seret & lepas beberapa file di sini, atau klik untuk memilih
+                  file (maksimal 5)
                 </p>
               </div>
             </div>
             {imageFiles.length > 0 && (
-              <div className="grid grid-cols-4 items-start gap-4">
-                <div className="col-start-2 col-span-3">
-                  {imageFiles.map((file, index) => (
-                    <div key={index} className="text-sm text-gray-600 mt-1">
-                      {file.name} ({(file.size / 1024).toFixed(2)} KB)
-                    </div>
-                  ))}
-                </div>
+              <div className="col-span-2">
+                {imageFiles.map((file, index) => (
+                  <div key={index} className="text-sm text-gray-600 mt-1">
+                    {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                  </div>
+                ))}
               </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>Batal</Button>
-            <Button onClick={isEditMode ? handleUpdateProduct : handleAddProduct}>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+              Batal
+            </Button>
+            <Button
+              onClick={isEditMode ? handleUpdateProduct : handleAddProduct}>
               {isEditMode ? "Perbarui" : "Tambah"}
             </Button>
           </DialogFooter>
@@ -298,11 +289,16 @@ export default function ProductPage() {
           <DialogHeader>
             <DialogTitle>Hapus Produk</DialogTitle>
             <DialogDescription>
-              Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak
+              dapat dibatalkan.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Batal</Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}>
+              Batal
+            </Button>
             <Button variant="destructive" onClick={handleDeleteProduct}>
               Hapus
             </Button>
@@ -314,4 +310,3 @@ export default function ProductPage() {
     </div>
   );
 }
-
