@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/dialog";
 import { useProductManagement } from "@/hooks/use-product-management";
 import { Loader2 } from 'lucide-react';
+import { formatRupiah } from "@/utils/currency";
+import { convertKgtoGram } from "@/utils/convert";
 
 export default function ProductPage() {
   const {
@@ -119,8 +121,8 @@ export default function ProductPage() {
                       />
                     )}
                   </TableCell>
-                  <TableCell>{product.weight} kg</TableCell>
-                  <TableCell>Rp {product.price.toLocaleString()}</TableCell>
+                  <TableCell>{convertKgtoGram(product.weight)} gram</TableCell>
+                  <TableCell>{formatRupiah(product.price)}</TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
