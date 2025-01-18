@@ -92,6 +92,8 @@ export const useProductManagement = () => {
       }
     } catch (error) {
       console.error("Error fetching products:", error);
+      setProducts([]);
+      setTotalPages(1);
       toast({
         title: "Error",
         description: "Failed to fetch products",

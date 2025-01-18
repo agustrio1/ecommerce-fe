@@ -22,6 +22,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useProductManagement } from "@/hooks/use-product-management";
+import { Loader2 } from 'lucide-react';
 
 export default function ProductPage() {
   const {
@@ -53,289 +54,255 @@ export default function ProductPage() {
       "image/jpeg": [],
       "image/png": [],
       "image/gif": [],
+      "image/webp": [],
+      "image/jpg": [],
+      "image/avif": [],
     },
     maxFiles: 5,
     multiple: true,
   });
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Kelola Produk</h1>
+    <div className="p-6 max-w-7xl mx-auto">
+      <h1 className="text-3xl font-bold mb-8">Kelola Produk</h1>
 
       <Button
         onClick={() => {
           setIsModalOpen(true);
           resetForm();
-        }}>
+        }}
+        className="mb-6">
         Tambah Produk
       </Button>
 
-      <div className="mt-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50">
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Nama
-              </TableHead>
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Gambar
-              </TableHead>
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Berat
-              </TableHead>
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Harga
-              </TableHead>
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Stok
-              </TableHead>
-              <TableHead className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Aksi
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.isArray(products) && products.length > 0 ? (
-              products.map((product, index) => (
-                <TableRow
-                  key={product.id}
-                  className={`${
-                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                  } hover:bg-gray-100 transition-colors duration-200`}>
-                  <TableCell className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap">
+      {products.length === 0 ? (
+        <div className="text-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-500">Memuat produk...</p>
+        </div>
+      ) : (
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nama</TableHead>
+                <TableHead>Gambar</TableHead>
+                <TableHead>Berat</TableHead>
+                <TableHead>Harga</TableHead>
+                <TableHead>Stok</TableHead>
+                <TableHead>Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {products.map((product) => (
+                <TableRow key={product.id}>
+                  <TableCell className="font-medium">
                     {product.name.length > 20
                       ? `${product.name.slice(0, 20)}...`
                       : product.name}
                   </TableCell>
-                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
-                    {Array.isArray(product.images) &&
-                      product.images.length > 0 && (
-                        <img
-                          src={product.images[0].image}
-                          alt={product.name}
-                          className="h-16 w-16 object-cover rounded-md shadow-sm"
-                        />
-                      )}
+                  <TableCell>
+                    {product.images && product.images.length > 0 && (
+                      <img
+                        src={product.images[0].image || "/placeholder.svg"}
+                        alt={product.name}
+                        className="h-16 w-16 object-cover rounded-md"
+                      />
+                    )}
                   </TableCell>
-                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
-                    {product.weight} kg
-                  </TableCell>
-                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
-                    Rp {product.price.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
-                    {product.stock}
-                  </TableCell>
-                  <TableCell className="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
+                  <TableCell>{product.weight} kg</TableCell>
+                  <TableCell>Rp {product.price.toLocaleString()}</TableCell>
+                  <TableCell>{product.stock}</TableCell>
+                  <TableCell>
                     <div className="flex space-x-2">
                       <Button
                         onClick={() => openEditModal(product)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-xs">
+                        variant="outline"
+                        size="sm">
                         Edit
                       </Button>
                       <Button
                         variant="destructive"
+                        size="sm"
                         onClick={() => {
                           setDeleteProductId(product.id as string);
                           setIsDeleteModalOpen(true);
-                        }}
-                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-xs">
+                        }}>
                         Hapus
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-center py-4 text-gray-500">
-                  Tidak ada produk
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
       {/* Pagination Controls */}
-      <div className="mt-4 flex justify-between items-center">
+      <div className="mt-6 flex justify-between items-center">
         <Button
+          variant="outline"
           disabled={currentPage === 1}
           onClick={() => handlePageChange(currentPage - 1)}>
           Sebelumnya
         </Button>
-        <span>
+        <span className="text-sm text-gray-600">
           Halaman {currentPage} dari {totalPages}
         </span>
         <Button
+          variant="outline"
           disabled={currentPage === totalPages}
           onClick={() => handlePageChange(currentPage + 1)}>
           Selanjutnya
         </Button>
       </div>
 
+      {/* Add/Edit Product Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
               {isEditMode ? "Edit Produk" : "Tambah Produk"}
             </DialogTitle>
             <DialogDescription>
-              {isEditMode ? "Edit detail produk." : "Isi detail produk."}
+              {isEditMode ? "Edit detail produk." : "Isi detail produk baru."}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label>Nama</Label>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Nama
+              </Label>
               <Input
+                id="name"
                 value={formData.name}
                 onChange={(e) => updateFormField("name", e.target.value)}
+                className="col-span-3"
               />
             </div>
-
-            <div>
-              <Label>Berat</Label>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="weight" className="text-right">
+                Berat (kg)
+              </Label>
               <Input
+                id="weight"
                 type="number"
                 value={formData.weight}
-                onChange={(e) =>
-                  updateFormField("weight", Number(e.target.value))
-                }
+                onChange={(e) => updateFormField("weight", Number(e.target.value))}
+                className="col-span-3"
               />
             </div>
-
-            <div>
-              <Label>Harga</Label>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="price" className="text-right">
+                Harga (Rp)
+              </Label>
               <Input
+                id="price"
                 type="number"
                 value={formData.price}
-                onChange={(e) =>
-                  updateFormField("price", Number(e.target.value))
-                }
+                onChange={(e) => updateFormField("price", Number(e.target.value))}
+                className="col-span-3"
               />
             </div>
-
-            <div>
-              <Label>Stok</Label>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="stock" className="text-right">
+                Stok
+              </Label>
               <Input
+                id="stock"
                 type="number"
                 value={formData.stock}
-                onChange={(e) =>
-                  updateFormField("stock", Number(e.target.value))
-                }
+                onChange={(e) => updateFormField("stock", Number(e.target.value))}
+                className="col-span-3"
               />
             </div>
-
-            <div>
-              <Label>Deskripsi</Label>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Deskripsi
+              </Label>
               <Input
+                id="description"
                 value={formData.description}
                 onChange={(e) => updateFormField("description", e.target.value)}
+                className="col-span-3"
               />
             </div>
-
-            <div>
-              <Label>Kategori</Label>
-              <div className="relative">
-                <label
-                  htmlFor="category"
-                  className="block text-sm font-medium text-gray-700 mb-1">
-                  Pilih Kategori
-                </label>
-                <select
-                  id="category"
-                  value={formData.categoryId}
-                  onChange={(e) =>
-                    updateFormField("categoryId", e.target.value)
-                  }
-                  className="appearance-none block w-full bg-white border border-gray-300 rounded-md py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-700">
-                  <option value="" disabled>
-                    Pilih Kategori
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="category" className="text-right">
+                Kategori
+              </Label>
+              <select
+                id="category"
+                value={formData.categoryId}
+                onChange={(e) => updateFormField("categoryId", e.target.value)}
+                className="col-span-3 w-full bg-background border border-input rounded-md px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
                   </option>
-                  {Array.isArray(categories) &&
-                    categories.map((category) => (
-                      <option
-                        key={category.id}
-                        value={category.id}
-                        className="text-gray-700">
-                        {category.name}
-                      </option>
-                    ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-gray-400"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true">
-                    <path
-                      fillRule="evenodd"
-                      d="M10 3a1 1 0 01.894.553l6 12A1 1 0 0116 17H4a1 1 0 01-.894-1.447l6-12A1 1 0 0110 3zm0 4.292L7.707 9.585a1 1 0 11-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 11-1.414 1.414L10 7.292z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-              </div>
+                ))}
+              </select>
             </div>
-
-            <div>
-              <Label>Tags</Label>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="tags" className="text-right">
+                Tags
+              </Label>
               <Input
+                id="tags"
                 value={formData.tags.join(",")}
-                onChange={(e) =>
-                  updateFormField("tags", e.target.value.split(","))
-                }
+                onChange={(e) => updateFormField("tags", e.target.value.split(","))}
                 placeholder="Tags dipisahkan koma"
+                className="col-span-3"
               />
             </div>
-
-            <div className="col-span-1 md:col-span-2">
-              <Label>Unggah Gambar</Label>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Gambar</Label>
               <div
                 {...getRootProps()}
-                className="border-2 border-dashed border-gray-400 p-4 cursor-pointer mt-1">
+                className="col-span-3 border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-gray-400 transition-colors"
+              >
                 <input {...getInputProps()} />
-                <p className="text-center text-gray-500">
-                  Seret & lepas beberapa file di sini, atau klik untuk memilih
-                  file (maksimal 5)
+                <p className="text-center text-sm text-gray-600">
+                  Seret & lepas beberapa file di sini, atau klik untuk memilih file (maksimal 5)
                 </p>
               </div>
-              <div className="mt-2">
-                {imageFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between mt-1">
-                    <span>{file.name}</span>
-                    <span>{(file.size / 1024).toFixed(2)} KB</span>
-                  </div>
-                ))}
-              </div>
             </div>
+            {imageFiles.length > 0 && (
+              <div className="grid grid-cols-4 items-start gap-4">
+                <div className="col-start-2 col-span-3">
+                  {imageFiles.map((file, index) => (
+                    <div key={index} className="text-sm text-gray-600 mt-1">
+                      {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
-            <Button onClick={() => setIsModalOpen(false)}>Batal</Button>
-            <Button
-              onClick={isEditMode ? handleUpdateProduct : handleAddProduct}>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>Batal</Button>
+            <Button onClick={isEditMode ? handleUpdateProduct : handleAddProduct}>
               {isEditMode ? "Perbarui" : "Tambah"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Delete Confirmation Modal */}
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Hapus Produk</DialogTitle>
             <DialogDescription>
-              Apakah Anda yakin ingin menghapus produk ini?
+              Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setIsDeleteModalOpen(false)}>Batal</Button>
+            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Batal</Button>
             <Button variant="destructive" onClick={handleDeleteProduct}>
               Hapus
             </Button>
@@ -347,3 +314,4 @@ export default function ProductPage() {
     </div>
   );
 }
+
