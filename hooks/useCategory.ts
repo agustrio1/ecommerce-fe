@@ -14,6 +14,7 @@ const useCategories = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: 'include',
         });
 
         if (!res.ok) {

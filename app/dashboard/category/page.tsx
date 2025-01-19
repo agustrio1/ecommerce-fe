@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { getToken } from "@/utils/token";
-import { Plus, Pencil, Trash2, Upload, Image as ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -33,12 +33,12 @@ interface Category {
   image: string | null;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export default function Page() {
   const { toast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
-  );
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryName, setCategoryName] = useState("");
@@ -47,6 +47,7 @@ export default function Page() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchCategories();
@@ -59,6 +60,7 @@ export default function Page() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: 'include',
       });
       const data = await res.json();
       setCategories(data);
@@ -105,6 +107,7 @@ export default function Page() {
           Authorization: `Bearer ${token}`,
         },
         body: formData,
+        credentials: 'include', // Add this line to include credentials
       });
 
       if (!res.ok) throw new Error("Failed to add category");
@@ -143,6 +146,7 @@ export default function Page() {
           Authorization: `Bearer ${token}`,
         },
         body: formData,
+        credentials: 'include', // Add this line to include credentials
       });
 
       if (!res.ok) throw new Error("Failed to update category");
@@ -175,6 +179,7 @@ export default function Page() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ id: deleteCategoryId }),
+        credentials: 'include', 
       });
 
       if (!res.ok) throw new Error("Failed to delete category");
@@ -194,6 +199,12 @@ export default function Page() {
       });
     }
   };
+
+  const totalPages = Math.ceil(categories.length / ITEMS_PER_PAGE);
+  const paginatedCategories = categories.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -224,13 +235,13 @@ export default function Page() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {categories.map((category, index) => (
+                {paginatedCategories.map((category, index) => (
                   <TableRow key={category.id}>
-                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</TableCell>
                     <TableCell>
                       {category.image ? (
                         <img
-                          src={category.image}
+                          src={category.image || "/placeholder.svg"}
                           alt={category.name}
                           className="h-10 w-10 object-cover rounded"
                         />
@@ -275,6 +286,27 @@ export default function Page() {
               </TableBody>
             </Table>
           </div>
+          <div className="flex items-center justify-between mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -290,49 +322,45 @@ export default function Page() {
                 : "Tambah kategori baru."}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-6 py-4">
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="category-name">Nama Kategori</Label>
-                <Input
-                  id="category-name"
-                  value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
-                  placeholder="Masukkan nama kategori"
-                />
-              </div>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="category-name">Nama Kategori</Label>
+              <Input
+                id="category-name"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                placeholder="Masukkan nama kategori"
+              />
             </div>
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="category-image">Gambar Kategori</Label>
-                <div className="flex flex-col gap-4">
-                  {previewUrl && (
-                    <div className="relative w-full aspect-video">
-                      <img
-                        src={previewUrl}
-                        alt="Preview"
-                        className="rounded-lg object-cover w-full h-full"
-                      />
-                    </div>
-                  )}
-                  <div className="flex items-center gap-4">
-                    <Input
-                      id="category-image"
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleImageChange}
-                      accept="image/*"
-                      className="hidden"
+            <div className="grid gap-2">
+              <Label htmlFor="category-image">Gambar Kategori</Label>
+              <div className="flex flex-col gap-4">
+                {previewUrl && (
+                  <div className="relative w-full aspect-video">
+                    <img
+                      src={previewUrl || "/placeholder.svg"}
+                      alt="Preview"
+                      className="rounded-lg object-cover w-full h-full"
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full">
-                      <Upload className="h-4 w-4 mr-2" />
-                      {previewUrl ? "Ganti Gambar" : "Upload Gambar"}
-                    </Button>
                   </div>
+                )}
+                <div className="flex items-center gap-4">
+                  <Input
+                    id="category-image"
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full">
+                    <Upload className="h-4 w-4 mr-2" />
+                    {previewUrl ? "Ganti Gambar" : "Upload Gambar"}
+                  </Button>
                 </div>
               </div>
             </div>
@@ -391,3 +419,4 @@ export default function Page() {
     </div>
   );
 }
+
