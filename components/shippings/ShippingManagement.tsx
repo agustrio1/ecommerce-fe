@@ -159,7 +159,7 @@ export const ShippingManagement = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
+              <TableHead>No</TableHead>
               <TableHead>Order ID</TableHead>
               <TableHead>Pelanggan</TableHead>
               <TableHead>Asal</TableHead>
@@ -197,10 +197,10 @@ export const ShippingManagement = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((shipping) => (
+              data.map((shipping, index) => (
                 <TableRow key={shipping.id} className="hover:bg-muted/50">
-                  <TableCell className="font-medium">{shipping.id}</TableCell>
-                  <TableCell>{shipping.order.id}</TableCell>
+                  <TableCell className="font-medium">{index + 1}</TableCell>
+                  <TableCell>{shipping.order.order_id || "-"}</TableCell>
                   <TableCell>
                     <div>{shipping.order.user.name}</div>
                     <div className="text-sm text-muted-foreground">{shipping.order.user.email}</div>

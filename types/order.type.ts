@@ -11,6 +11,7 @@ export interface OrderItem {
   
   export interface Order {
     id: string;
+    order_id?: string;
     createdAt: string;
     orderDate: string;
     total: number;

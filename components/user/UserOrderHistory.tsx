@@ -28,7 +28,7 @@ const FloatingDetails = ({
       <div className="sticky top-0 bg-white p-6 border-b flex justify-between items-center">
         <div>
           <h3 className="font-semibold text-lg">Detail Pesanan</h3>
-          <p className="text-sm text-gray-500">#{order.id}</p>
+          <p className="text-sm text-gray-500">{order.order_id || order.id}</p>
         </div>
         <Button
           variant="ghost"
@@ -185,7 +185,7 @@ export function OrderHistory() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className=" mx-auto">
       <Card className="shadow-lg">
         <CardHeader className="border-b bg-gray-50">
           <div className="flex items-center gap-2">

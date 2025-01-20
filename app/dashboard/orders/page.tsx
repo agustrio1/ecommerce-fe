@@ -232,9 +232,7 @@ export default function AdminOrderPage() {
                   <div className="flex justify-between items-start gap-4">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-lg">
-                          Order #{order.id.slice(-8)}
-                        </span>
+                      <span className="font-semibold text-lg">{order.order_id || order.id.slice(-8)}</span>
                         <Badge className={`${getStatusColor(order.status)} text-xs px-2 py-1`}>
                           {order.status}
                         </Badge>
@@ -299,7 +297,7 @@ export default function AdminOrderPage() {
             <div className="sticky top-0 bg-white p-6 border-b flex justify-between items-center">
               <div>
                 <h3 className="font-semibold text-xl text-gray-800">
-                  Detail Pesanan #{selectedOrder.id.slice(-8)}
+                  Detail Pesanan #{selectedOrder.id.slice(-8) || selectedOrder.order_id}
                 </h3>
                 <Badge
                   className={`mt-2 ${getStatusColor(selectedOrder.status)}`}>

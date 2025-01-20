@@ -153,11 +153,11 @@ export const ShippingHistory = () => {
           <div className="overflow-x-auto">
             {isMobile ? (
               <div className="space-y-4">
-                {data.map((item) => (
+                {data.map((item, index) => (
                   <Card key={item.id} className="p-4">
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="font-medium">{truncateString(item.id, 8)}</p>
+                        <p className="font-medium">{index + 1}</p>
                         <p className="text-sm text-gray-500">{item.courier.toUpperCase()}</p>
                       </div>
                       <StatusBadge status={item.status} />
@@ -182,7 +182,7 @@ export const ShippingHistory = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
+                    <TableHead>No</TableHead>
                     <TableHead>Kota Asal</TableHead>
                     <TableHead>Kota Tujuan</TableHead>
                     <TableHead>Kurir</TableHead>
@@ -194,9 +194,9 @@ export const ShippingHistory = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.map((item) => (
+                  {data.map((item, index) => (
                     <TableRow key={item.id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium">{item.id}</TableCell>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
                       <TableCell>{item.originCity}</TableCell>
                       <TableCell>{item.destinationCity}</TableCell>
                       <TableCell>{item.courier.toUpperCase()}</TableCell>

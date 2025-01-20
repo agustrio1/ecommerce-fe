@@ -1,16 +1,17 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { useToast } from "@/hooks/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Check, Trash2, RefreshCw, ChevronRight } from 'lucide-react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
-import { fetchWithAuth } from "@/utils/api";
-import { useInView } from "react-intersection-observer";
-import { getToken } from "@/utils/token";
+import * as React from "react"
+import { useToast } from "@/hooks/use-toast"
+import { motion, AnimatePresence } from "framer-motion"
+import { Bell, Check, Trash2, RefreshCw, ChevronRight } from "lucide-react"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Skeleton } from "@/components/ui/skeleton"
+import { fetchWithAuth } from "@/utils/api"
+import { useInView } from "react-intersection-observer"
+import { getToken } from "@/utils/token"
+import { redirect } from "next/navigation"
 import {
   Dialog,
   DialogContent,
@@ -18,97 +19,118 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"
 
 interface Notification {
-  id: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
+  id: string
+  message: string
+  isRead: boolean
+  createdAt: string
 }
 
 export default function Notifications() {
-  const [notifications, setNotifications] = React.useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const { toast } = useToast();
-  const { ref, inView } = useInView();
+  const [notifications, setNotifications] = React.useState<Notification[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
+  const { toast } = useToast()
+  const { ref, inView } = useInView()
 
   const fetchNotifications = React.useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true)
+    setError(null)
     try {
-      const token = await getToken();
-      if (!token) throw new Error("Token tidak ditemukan");
-      const userPayload = JSON.parse(atob(token.split(".")[1]));
-      const userId = userPayload?.id;
+      const token = await getToken()
+      if (!token) {
+        redirect("/login")
+        return
+      }
+      const userPayload = JSON.parse(atob(token.split(".")[1]))
+      const userId = userPayload?.id
 
-      const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${userId}`);
-      if (!res.ok) throw new Error("Gagal mengambil data notifikasi.");
-      const data = await res.json();
-      if (!Array.isArray(data.notifications)) throw new Error("Format data tidak valid.");
-      setNotifications(data.notifications);
+      const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${userId}`)
+      if (!res.ok) throw new Error("Gagal mengambil data notifikasi.")
+      const data = await res.json()
+      if (!Array.isArray(data.notifications)) throw new Error("Format data tidak valid.")
+      setNotifications(data.notifications)
     } catch (error: any) {
-      setError(error.message);
-      toast({
-        title: "Terjadi kesalahan saat mengambil notifikasi",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (error.message === "Token tidak ditemukan") {
+        redirect("/login")
+      } else {
+        setError(error.message)
+        toast({
+          title: "Terjadi kesalahan saat mengambil notifikasi",
+          description: error.message,
+          variant: "destructive",
+        })
+      }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, [toast]);
+  }, [toast])
 
   React.useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    fetchNotifications()
+  }, [fetchNotifications])
 
   React.useEffect(() => {
     if (inView) {
-      fetchNotifications();
+      fetchNotifications()
     }
-  }, [inView, fetchNotifications]);
+  }, [inView, fetchNotifications])
 
   async function markAsRead(notificationId: string) {
     try {
-      const res = await fetchWithAuth(
-        `${process.env.NEXT_PUBLIC_API_URL}/notifications/read/${notificationId}`,
-        { method: "PUT" }
-      );
-      if (!res.ok) throw new Error("Gagal menandai notifikasi sebagai telah dibaca.");
-      setNotifications(prev =>
-        prev.map(notification =>
-          notification.id === notificationId
-            ? { ...notification, isRead: true }
-            : notification
-        )
-      );
-      toast({ title: "Notifikasi berhasil ditandai sebagai telah dibaca", variant: "default" });
+      const token = await getToken()
+      if (!token) {
+        redirect("/login")
+        return
+      }
+      const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/notifications/read/${notificationId}`, {
+        method: "PUT",
+      })
+      if (!res.ok) throw new Error("Gagal menandai notifikasi sebagai telah dibaca.")
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.id === notificationId ? { ...notification, isRead: true } : notification,
+        ),
+      )
+      toast({ title: "Notifikasi berhasil ditandai sebagai telah dibaca", variant: "default" })
     } catch (error: any) {
-      toast({
-        title: "Kesalahan saat menandai notifikasi",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (error.message === "Token tidak ditemukan") {
+        redirect("/login")
+      } else {
+        toast({
+          title: "Kesalahan saat menandai notifikasi",
+          description: error.message,
+          variant: "destructive",
+        })
+      }
     }
   }
 
   async function deleteNotification(notificationId: string) {
     try {
-      const res = await fetchWithAuth(
-        `${process.env.NEXT_PUBLIC_API_URL}/notifications/${notificationId}`,
-        { method: "DELETE" }
-      );
-      if (!res.ok) throw new Error("Gagal menghapus notifikasi.");
-      setNotifications(prev => prev.filter(notification => notification.id !== notificationId));
-      toast({ title: "Notifikasi berhasil dihapus", variant: "default" });
+      const token = await getToken()
+      if (!token) {
+        redirect("/login")
+        return
+      }
+      const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${notificationId}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) throw new Error("Gagal menghapus notifikasi.")
+      setNotifications((prev) => prev.filter((notification) => notification.id !== notificationId))
+      toast({ title: "Notifikasi berhasil dihapus", variant: "default" })
     } catch (error: any) {
-      toast({
-        title: "Kesalahan saat menghapus notifikasi",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (error.message === "Token tidak ditemukan") {
+        redirect("/login")
+      } else {
+        toast({
+          title: "Kesalahan saat menghapus notifikasi",
+          description: error.message,
+          variant: "destructive",
+        })
+      }
     }
   }
 
@@ -151,13 +173,16 @@ export default function Notifications() {
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <Card className={`${notification.isRead ? "bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-700"} hover:shadow-lg transition-shadow duration-300`}>
+                        <Card
+                          className={`${notification.isRead ? "bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-700"} hover:shadow-lg transition-shadow duration-300`}
+                        >
                           <CardContent className="pt-6">
                             <p className="font-semibold text-gray-800 dark:text-gray-200 line-clamp-2">
                               {notification.message}
                             </p>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                              {notification.isRead ? "Sudah dibaca" : "Belum dibaca"} • {new Date(notification.createdAt).toLocaleString()}
+                              {notification.isRead ? "Sudah dibaca" : "Belum dibaca"} •{" "}
+                              {new Date(notification.createdAt).toLocaleString()}
                             </p>
                           </CardContent>
                           <CardFooter className="flex justify-between items-center">
@@ -171,17 +196,11 @@ export default function Notifications() {
                               <DialogContent>
                                 <DialogHeader>
                                   <DialogTitle>Detail Notifikasi</DialogTitle>
-                                  <DialogDescription>
-                                    {notification.message}
-                                  </DialogDescription>
+                                  <DialogDescription>{notification.message}</DialogDescription>
                                 </DialogHeader>
                                 <div className="flex justify-end space-x-2 mt-4">
                                   {!notification.isRead && (
-                                    <Button
-                                      onClick={() => markAsRead(notification.id)}
-                                      variant="outline"
-                                      size="sm"
-                                    >
+                                    <Button onClick={() => markAsRead(notification.id)} variant="outline" size="sm">
                                       <Check className="mr-2 h-4 w-4" />
                                       Tandai Sudah Dibaca
                                     </Button>
@@ -238,5 +257,6 @@ export default function Notifications() {
       </Card>
       <div ref={ref} />
     </div>
-  );
+  )
 }
+

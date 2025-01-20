@@ -10,8 +10,7 @@ import { useCart } from "@/hooks/useCart";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function CartPage() {
-  const { cartItems, loading, error, handleUpdateQuantity, handleDeleteItem } =
-    useCart();
+  const { cartItems, loading, error, handleUpdateQuantity, handleDeleteItem } = useCart();
   const router = useRouter();
 
   const totalPrice = React.useMemo(() => {
@@ -46,7 +45,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 pt-24">
+    <div className="container mx-auto px-4 py-12 pt-24 max-w-4xl">
       <h1 className="text-3xl sm:text-4xl font-bold mb-12 text-center text-gray-800">
         Keranjang Belanja Anda
       </h1>
@@ -59,7 +58,7 @@ export default function CartPage() {
           className="text-center space-y-6"
         >
           <ShoppingCart size={64} className="mx-auto text-gray-400" />
-          <p className="text-2xl text-gray-600">
+          <p className="text-xl sm:text-2xl text-gray-600">
             Keranjang Anda kosong. Mari mulai belanja!
           </p>
           <Button
@@ -79,10 +78,10 @@ export default function CartPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white shadow-lg p-6 rounded-xl flex flex-col sm:flex-row items-center justify-between transition hover:shadow-xl"
+                className="bg-white shadow-lg rounded-2xl overflow-hidden transition hover:shadow-xl"
               >
-                <div className="flex items-center space-x-6 w-full sm:w-auto mb-4 sm:mb-0">
-                  <div className="w-24 h-24 sm:w-32 sm:h-32 relative rounded-lg overflow-hidden">
+                <div className="flex flex-col sm:flex-row">
+                  <div className="w-full sm:w-1/3 relative aspect-square sm:aspect-auto">
                     <Image
                       src={
                         item.product?.images?.length &&
@@ -96,53 +95,58 @@ export default function CartPage() {
                       className="object-cover"
                     />
                   </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                      {item.product?.name}
-                    </h3>
-                    <div className="text-lg font-bold text-blue-600">
-                      {formatRupiah(item.product?.price)}
+                  <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2">
+                        {item.product?.name}
+                      </h3>
+                      <div className="text-lg sm:text-xl font-bold text-blue-600 mb-4">
+                        {formatRupiah(item.product?.price)}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="flex items-center border border-gray-300 rounded-full">
+                        <Button
+                          onClick={() => handleUpdateQuantity(item.id, "decrease")}
+                          variant="ghost"
+                          className="rounded-l-full px-3 py-1 hover:bg-gray-100"
+                        >
+                          <Minus size={16} />
+                        </Button>
+                        <span className="px-4 py-1 text-lg font-semibold">
+                          {item.quantity}
+                        </span>
+                        <Button
+                          onClick={() => handleUpdateQuantity(item.id, "increase")}
+                          variant="ghost"
+                          className="rounded-r-full px-3 py-1 hover:bg-gray-100"
+                        >
+                          <Plus size={16} />
+                        </Button>
+                      </div>
+                      <Button
+                        onClick={() => handleDeleteItem(item.id)}
+                        variant="outline"
+                        className="text-red-500 border-red-500 hover:bg-red-50 transition rounded-full p-2"
+                      >
+                        <Trash2 size={20} />
+                      </Button>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-                  <div className="flex items-center border border-gray-300 rounded-full">
-                    <Button
-                      onClick={() => handleUpdateQuantity(item.id, "decrease")}
-                      variant="ghost"
-                      className="rounded-l-full px-3 py-1 hover:bg-gray-100"
-                    >
-                      <Minus size={20} />
-                    </Button>
-                    <span className="px-4 py-1 text-lg font-semibold">
-                      {item.quantity}
-                    </span>
-                    <Button
-                      onClick={() => handleUpdateQuantity(item.id, "increase")}
-                      variant="ghost"
-                      className="rounded-r-full px-3 py-1 hover:bg-gray-100"
-                    >
-                      <Plus size={20} />
-                    </Button>
-                  </div>
-                  <Button
-                    onClick={() => handleDeleteItem(item.id)}
-                    variant="outline"
-                    className="text-red-500 border-red-500 hover:bg-red-50 transition rounded-full p-2"
-                  >
-                    <Trash2 size={20} />
-                  </Button>
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
 
-          <div className="bg-gray-50 p-6 rounded-xl shadow-md">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-xl font-semibold text-gray-700">Total:</span>
-              <span className="text-2xl font-bold text-blue-600">{formatRupiah(totalPrice)}</span>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="bg-white p-6 rounded-2xl shadow-lg"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-xl sm:text-2xl font-semibold text-gray-700">Total:</span>
+              <span className="text-2xl sm:text-3xl font-bold text-blue-600">{formatRupiah(totalPrice)}</span>
             </div>
             <Button
               onClick={() => router.push("/checkouts")}
@@ -150,7 +154,7 @@ export default function CartPage() {
             >
               Lanjutkan ke Pembayaran
             </Button>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

@@ -1,20 +1,13 @@
-"use client";
+"use client"
 
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ShoppingBag, Package, TrendingUp, AlertCircle, Download, Eye } from 'lucide-react';
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import type React from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { ShoppingBag, Package, TrendingUp, AlertCircle, Download, Eye } from "lucide-react"
+import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -22,28 +15,27 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-import { useUserDashboard } from "@/hooks/useUserDashboard";
-import { useCSVGenerator } from "@/hooks/useCSVGenerator";
-import { getProgressColor, getStatusColor } from "@/utils/getStatusColor";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
+import { useUserDashboard } from "@/hooks/useUserDashboard"
+import { useCSVGenerator } from "@/hooks/useCSVGenerator"
+import { getProgressColor, getStatusColor } from "@/utils/getStatusColor"
+import { Skeleton } from "@/components/ui/skeleton"
+import { nanoid } from "nanoid"
 
 export default function UserDashboard() {
-  const { recentOrders, userStats, loading, userName } = useUserDashboard();
-  const { generateCSV, downloadCSV } = useCSVGenerator(recentOrders);
+  const { recentOrders, userStats, loading, userName, orderStatusStats } = useUserDashboard()
+  const { generateCSV, downloadCSV } = useCSVGenerator(recentOrders)
 
   if (loading) {
-    return <DashboardSkeleton />;
+    return <DashboardSkeleton />
   }
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 md:flex-row justify-between items-start md:items-center p-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-            Selamat datang, {userName}!
-          </h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Selamat datang, {userName}!</h1>
           <p className="text-sm md:text-base text-muted-foreground mt-1">
             Berikut adalah ringkasan aktivitas akun Anda.
           </p>
@@ -59,9 +51,7 @@ export default function UserDashboard() {
             <DialogContent className="max-w-3xl">
               <DialogHeader>
                 <DialogTitle>Pratinjau CSV</DialogTitle>
-                <DialogDescription>
-                  Berikut adalah pratinjau dari file CSV yang akan diunduh.
-                </DialogDescription>
+                <DialogDescription>Berikut adalah pratinjau dari file CSV yang akan diunduh.</DialogDescription>
               </DialogHeader>
               <div className="mt-4 max-h-96 overflow-auto">
                 <Table>
@@ -76,7 +66,7 @@ export default function UserDashboard() {
                   <TableBody>
                     {recentOrders.map((order) => (
                       <TableRow key={order.id}>
-                        <TableCell>{order.id}</TableCell>
+                        <TableCell>{order.order_id || order.id}</TableCell>
                         <TableCell>{new Date(order.createdAt).toLocaleDateString("id-ID")}</TableCell>
                         <TableCell>Rp {order.total.toLocaleString()}</TableCell>
                         <TableCell>{order.status}</TableCell>
@@ -112,7 +102,7 @@ export default function UserDashboard() {
         />
         <DashboardCard
           title="Rata-rata Nilai Pesanan"
-          value={`Rp ${userStats.averageOrderValue.toLocaleString()}`}
+          value={`Rp ${Math.round(userStats.averageOrderValue).toLocaleString()}`}
           description="Per pesanan"
           icon={<Package className="h-4 w-4 text-muted-foreground" />}
         />
@@ -134,6 +124,7 @@ export default function UserDashboard() {
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow>
+                    <TableHead>ID Pesanan</TableHead>
                     <TableHead>Tanggal</TableHead>
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
@@ -142,37 +133,26 @@ export default function UserDashboard() {
                 <TableBody>
                   {recentOrders.length > 0 ? (
                     recentOrders
-                      .sort(
-                        (a, b) =>
-                          new Date(b.createdAt).getTime() -
-                          new Date(a.createdAt).getTime()
-                      )
+                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                       .map((order) => (
                         <TableRow key={order.id}>
+                          <TableCell>{order.order_id || nanoid(8)}</TableCell>
                           <TableCell>
-                            {new Date(order.createdAt).toLocaleDateString(
-                              "id-ID",
-                              {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              }
-                            )}
+                            {new Date(order.createdAt).toLocaleDateString("id-ID", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
                           </TableCell>
+                          <TableCell>Rp {order.total.toLocaleString()}</TableCell>
                           <TableCell>
-                            Rp {order.total.toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              className={`${getStatusColor(order.status)} text-white`}>
-                              {order.status}
-                            </Badge>
+                            <Badge className={`${getStatusColor(order.status)} text-white`}>{order.status}</Badge>
                           </TableCell>
                         </TableRow>
                       ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center">
+                      <TableCell colSpan={4} className="text-center">
                         Belum ada pesanan
                       </TableCell>
                     </TableRow>
@@ -190,15 +170,19 @@ export default function UserDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <OrderStatistic label="Pesanan Sukses" value={80} status="success" />
-            <OrderStatistic label="Pesanan Pending" value={15} status="pending" />
-            <OrderStatistic label="Pesanan Gagal" value={3} status="failed" />
-            <OrderStatistic label="Pesanan Dibatalkan" value={2} status="canceled" />
+            {Object.entries(orderStatusStats).map(([status, percentage]) => (
+              <OrderStatistic
+                key={status}
+                label={`Pesanan ${status}`}
+                value={Math.round(percentage)}
+                status={status.toLowerCase()}
+              />
+            ))}
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
 
 function DashboardCard({
@@ -207,10 +191,10 @@ function DashboardCard({
   description,
   icon,
 }: {
-  title: string;
-  value: string;
-  description: string;
-  icon: React.ReactNode;
+  title: string
+  value: string
+  description: string
+  icon: React.ReactNode
 }) {
   return (
     <Card>
@@ -223,7 +207,7 @@ function DashboardCard({
         <p className="text-xs text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
-  );
+  )
 }
 
 function OrderStatistic({ label, value, status }: { label: string; value: number; status: string }) {
@@ -233,10 +217,7 @@ function OrderStatistic({ label, value, status }: { label: string; value: number
         <p className="text-sm font-medium">{label}</p>
         <span className="text-sm text-muted-foreground">{value}%</span>
       </div>
-      <Progress 
-        value={value} 
-        className={cn("mt-2", getProgressColor(status))}
-      />
+      <Progress value={value} className={cn("mt-2", getProgressColor(status))} />
     </div>
   )
 }
@@ -261,6 +242,6 @@ function DashboardSkeleton() {
       </div>
       <Skeleton className="h-[300px] w-full" />
     </div>
-  );
+  )
 }
 

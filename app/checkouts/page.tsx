@@ -310,8 +310,8 @@ const CheckoutPage = () => {
         <p className="text-gray-600 mb-4">
           Anda akan diarahkan ke halaman pembayaran Midtrans untuk menyelesaikan
           pesanan.
-        </p>
-        <p>Total Pembayaran: {formatRupiah(calculateTotal())}</p>
+        </p>       
+        <p>Total Order: {formatRupiah(calculateTotal())}</p>
         <Button className="w-full" disabled={loading} onClick={createPayment}>
           {loading ? <Loader2 className="animate-spin mr-2" /> : null}
           Bayar Sekarang

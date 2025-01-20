@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { getToken } from "@/utils/token";
-import { Plus, Pencil, Trash2, Upload, ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, ImageIcon, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Category {
   id: string;
@@ -48,12 +49,14 @@ export default function Page() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
   const fetchCategories = async () => {
+    setIsLoading(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
         method: "GET",
@@ -63,13 +66,19 @@ export default function Page() {
         credentials: 'include',
       });
       const data = await res.json();
-      setCategories(data);
+      if (data && Array.isArray(data)) {
+        setCategories(data);
+      } else {
+        throw new Error("Invalid data format");
+      }
     } catch (error) {
       toast({
         title: "Error",
         description: "Gagal mengambil data kategori",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -107,7 +116,7 @@ export default function Page() {
           Authorization: `Bearer ${token}`,
         },
         body: formData,
-        credentials: 'include', // Add this line to include credentials
+        credentials: 'include',
       });
 
       if (!res.ok) throw new Error("Failed to add category");
@@ -140,13 +149,13 @@ export default function Page() {
       }
       formData.append("id", selectedCategory.id);
 
-      const res = await fetch(`/api/categories`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
         },
         body: formData,
-        credentials: 'include', // Add this line to include credentials
+        credentials: 'include',
       });
 
       if (!res.ok) throw new Error("Failed to update category");
@@ -172,7 +181,7 @@ export default function Page() {
 
     try {
       const token = await getToken();
-      const res = await fetch(`/api/categories`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -210,103 +219,132 @@ export default function Page() {
     <div className="container mx-auto px-4 py-8">
       <Toaster />
       <Card className="mb-8">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Manajemen Kategori</CardTitle>
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <CardTitle className="text-2xl font-bold">Manajemen Kategori</CardTitle>
           <Button
             onClick={() => {
               setIsModalOpen(true);
               setIsEditMode(false);
               resetForm();
             }}
-            className="flex items-center gap-2">
+            className="w-full sm:w-auto flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Tambah Kategori
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[100px]">No</TableHead>
-                  <TableHead>Gambar</TableHead>
-                  <TableHead>Nama</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedCategories.map((category, index) => (
-                  <TableRow key={category.id}>
-                    <TableCell>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</TableCell>
-                    <TableCell>
-                      {category.image ? (
-                        <img
-                          src={category.image || "/placeholder.svg"}
-                          alt={category.name}
-                          className="h-10 w-10 object-cover rounded"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 bg-gray-100 flex items-center justify-center rounded">
-                          <ImageIcon className="h-6 w-6 text-gray-400" />
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>{category.name}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setIsModalOpen(true);
-                            setIsEditMode(true);
-                            setSelectedCategory(category);
-                            setCategoryName(category.name);
-                            setPreviewUrl(category.image);
-                          }}
-                          className="flex items-center gap-2">
-                          <Pencil className="h-4 w-4" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            setDeleteCategoryId(category.id);
-                            setIsDeleteModalOpen(true);
-                          }}
-                          className="flex items-center gap-2">
-                          <Trash2 className="h-4 w-4" />
-                          Hapus
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          <div className="flex items-center justify-between mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              Previous
-            </Button>
-            <span>
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
-          </div>
+          {isLoading ? (
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px]" />
+                    <Skeleton className="h-4 w-[200px]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="p-4 text-center text-gray-500">
+              <div className="text-4xl mb-4">
+                <ImageIcon className="h-12 w-12 mx-auto" />
+              </div>
+              <p className="text-lg">Belum ada kategori yang tersedia.</p>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-lg border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[100px]">No</TableHead>
+                        <TableHead>Gambar</TableHead>
+                        <TableHead>Nama</TableHead>
+                        <TableHead className="text-right">Aksi</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedCategories.map((category, index) => (
+                        <TableRow key={category.id}>
+                          <TableCell className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</TableCell>
+                          <TableCell>
+                            {category.image ? (
+                              <img
+                                src={category.image || "/placeholder.svg"}
+                                alt={category.name}
+                                className="h-10 w-10 object-cover rounded-full"
+                              />
+                            ) : (
+                              <div className="h-10 w-10 bg-gray-100 flex items-center justify-center rounded-full">
+                                <ImageIcon className="h-6 w-6 text-gray-400" />
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>{category.name}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setIsModalOpen(true);
+                                  setIsEditMode(true);
+                                  setSelectedCategory(category);
+                                  setCategoryName(category.name);
+                                  setPreviewUrl(category.image);
+                                }}
+                                className="flex items-center gap-2">
+                                <Pencil className="h-4 w-4" />
+                                <span className="hidden sm:inline">Edit</span>
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  setDeleteCategoryId(category.id);
+                                  setIsDeleteModalOpen(true);
+                                }}
+                                className="flex items-center gap-2">
+                                <Trash2 className="h-4 w-4" />
+                                <span className="hidden sm:inline">Hapus</span>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="w-full sm:w-auto"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-gray-500">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="w-full sm:w-auto"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -340,7 +378,7 @@ export default function Page() {
                     <img
                       src={previewUrl || "/placeholder.svg"}
                       alt="Preview"
-                      className="rounded-lg object-cover w-full h-full"
+                      className="rounded-lg object-cover w-32 h-32"
                     />
                   </div>
                 )}

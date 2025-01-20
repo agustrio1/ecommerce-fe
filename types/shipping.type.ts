@@ -24,6 +24,7 @@ export interface Shipping {
   updatedAt: string;
   order: {
     id: string;
+    order_id: string;
     total: number;
     orderItems: Array<{
       product: {

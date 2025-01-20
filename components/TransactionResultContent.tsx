@@ -68,7 +68,7 @@ const TransactionResultContent = () => {
           Kembali ke Beranda
         </Link>
         <Link 
-          href="/user/order-history" 
+          href="https://shop.trioagus.cloud/user/order-history" 
           className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg transition duration-300 ease-in-out text-center"
         >
           Lihat Pesanan Saya
